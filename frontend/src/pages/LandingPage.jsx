@@ -444,40 +444,64 @@ const LandingPage = () => {
                 transition={{ duration: 0.7, delay: index * 0.1 }}
                 style={{
                 textAlign: 'center',
-                padding: 'var(--spacing-xl)',
-                background: 'var(--surface)',
-                borderRadius: 'var(--radius-xl)',
-                border: '1px solid var(--border-color)',
+                padding: '40px 32px',
+                background: 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(12px)',
+                borderRadius: '32px',
+                border: '1px solid rgba(255, 255, 255, 0.6)',
                 position: 'relative',
-                zIndex: 1
+                zIndex: 1,
+                boxShadow: '0 10px 40px -10px rgba(0,0,0,0.05)',
+                overflow: 'hidden'
               }}>
                 <div style={{
-                  width: '80px',
-                  height: '80px',
-                  background: 'linear-gradient(135deg, var(--primary-color) 0%, #7C3AED 100%)',
-                  borderRadius: '50%',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '6px',
+                  background: 'linear-gradient(90deg, var(--primary-color), #7C3AED)'
+                }} />
+                
+                <div style={{
+                  width: '88px',
+                  height: '88px',
+                  background: 'white',
+                  borderRadius: '24px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '2rem',
-                  margin: '0 auto var(--spacing-lg)',
-                  color: 'white',
-                  boxShadow: '0 10px 20px rgba(124, 58, 237, 0.3)'
+                  fontSize: '2.5rem',
+                  margin: '0 auto 24px',
+                  color: 'var(--primary-color)',
+                  boxShadow: '0 12px 24px rgba(90, 45, 130, 0.1)',
+                  position: 'relative',
+                  zIndex: 2
                 }}>
                   {step.icon}
                 </div>
-                <h3 style={{ fontSize: '1.5rem', marginBottom: 'var(--spacing-sm)', fontWeight: '700' }}>{step.title}</h3>
-                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>{step.description}</p>
+                <h3 style={{ 
+                  fontSize: '1.5rem', 
+                  marginBottom: '12px', 
+                  fontWeight: '700',
+                  color: 'var(--text-primary)'
+                }}>{step.title}</h3>
+                <p style={{ 
+                  color: 'var(--text-secondary)', 
+                  lineHeight: 1.7,
+                  fontSize: '1.05rem'
+                }}>{step.description}</p>
                 <div style={{
                   position: 'absolute',
-                  top: 'var(--spacing-md)',
-                  right: 'var(--spacing-md)',
-                  fontSize: '4rem',
+                  top: '20px',
+                  right: '20px',
+                  fontSize: '5rem',
                   fontWeight: '900',
-                  color: 'var(--border-color)',
-                  opacity: 0.3,
-                  zIndex: -1,
-                  fontFamily: 'var(--font-heading)'
+                  color: 'var(--primary-color)',
+                  opacity: 0.05,
+                  zIndex: 0,
+                  fontFamily: 'var(--font-heading)',
+                  lineHeight: 1
                 }}>
                   {step.number}
                 </div>
