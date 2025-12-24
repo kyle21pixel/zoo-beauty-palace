@@ -62,8 +62,7 @@ export const EmptyState = ({
           marginBottom: action ? 'var(--spacing-xl)' : 0,
           lineHeight: 1.6,
           maxWidth: '400px',
-          margin: '0 auto',
-          marginBottom: action ? 'var(--spacing-xl)' : 0
+          margin: '0 auto'
         }}>
           {description}
         </p>
