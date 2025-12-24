@@ -189,6 +189,12 @@ export const reviewAPI = {
   create: USE_MOCK_API 
     ? mockReviewAPI.create 
     : (reviewData) => api.post('/reviews', reviewData),
+  update: USE_MOCK_API 
+    ? (id, reviewData) => Promise.resolve({ data: { success: true, review: { id, ...reviewData } } })
+    : (id, reviewData) => api.put(`/reviews/${id}`, reviewData),
+  delete: USE_MOCK_API 
+    ? (id) => Promise.resolve({ data: { success: true } })
+    : (id) => api.delete(`/reviews/${id}`),
 };
 
 export default api;
