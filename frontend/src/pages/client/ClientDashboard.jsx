@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { bookingAPI } from '../../services/api';
 import { handleApiCall, formatCurrency } from '../../utils/apiUtils';
 import BookingCard from '../../components/BookingCard.jsx';
+import { SkeletonStat, SkeletonList } from '../../components/Skeleton';
+import { EmptyState, ErrorState } from '../../components/EmptyState';
+import { Avatar } from '../../components/Avatar';
+import { Badge } from '../../components/Badge';
 
 const ClientDashboard = () => {
   const { user } = useAuth();
+  const toast = useToast();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,35 +31,40 @@ const ClientDashboard = () => {
       setBookings(result.data.bookings);
     } catch (error) {
       console.error('Error fetching bookings:', error);
+      toast.error('Failed to load bookings');
     }
   };
 
-  if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontSize: '18px',
-        color: 'var(--text-primary)'
-      }}>
-        Loading your dashboard...
-      </div>
-    );
-  }
+  const handleStatusChange = async (bookingId, newStatus) => {
+    try {
+      const result = await handleApiCall(
+        () => bookingAPI.updateStatus(bookingId, newStatus),
+        setLoading,
+        setError
+      );
+      
+      if (result.success) {
+        setBookings(prevBookings => 
+          prevBookings.map(booking => 
+            booking.id === bookingId ? { ...booking, status: newStatus } : booking
+          )
+        );
+        toast.success(`Booking ${newStatus} successfully`);
+      }
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      toast.error('Failed to update booking status');
+    }
+  };
 
   if (error) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        color: 'var(--status-cancelled)',
-        fontSize: '18px'
-      }}>
-        Error: {error}
+      <div style={{ padding: 'var(--spacing-3xl)' }}>
+        <ErrorState 
+          title="Dashboard Error" 
+          description={error} 
+          onRetry={fetchBookings} 
+        />
       </div>
     );
   }
@@ -89,20 +100,36 @@ const ClientDashboard = () => {
         borderRight: '1px solid var(--border-color)',
         position: 'fixed',
         height: '100vh',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        zIndex: 10
       }}>
         <div style={{ padding: '0 var(--spacing-lg)', marginBottom: 'var(--spacing-xl)' }}>
           <h2 style={{ 
             fontFamily: 'var(--font-heading)',
             color: 'var(--primary-color)', 
             fontSize: '1.5rem',
-            marginBottom: 'var(--spacing-xs)',
+            marginBottom: 'var(--spacing-lg)',
             fontWeight: '700',
             letterSpacing: '-0.01em'
           }}>
             Client Portal
           </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Welcome back, {user?.firstName}</p>
+          
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 'var(--spacing-md)',
+            padding: 'var(--spacing-md)',
+            background: 'var(--background)',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: 'var(--spacing-md)'
+          }}>
+            <Avatar name={user?.firstName} size="md" status="online" />
+            <div>
+              <p style={{ margin: 0, fontWeight: '600', fontSize: '0.9375rem' }}>{user?.firstName}</p>
+              <Badge variant="primary" size="sm">Client</Badge>
+            </div>
+          </div>
         </div>
         
         <nav>
@@ -165,76 +192,87 @@ const ClientDashboard = () => {
           gap: 'var(--spacing-lg)',
           marginBottom: 'var(--spacing-3xl)'
         }}>
-          <div style={{ 
-            background: 'linear-gradient(135deg, var(--primary-color) 0%, #7C3AED 100%)',
-            padding: 'var(--spacing-xl)',
-            borderRadius: 'var(--radius-lg)',
-            color: 'white',
-            boxShadow: '0 4px 16px var(--shadow-light)'
-          }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>📅</div>
-            <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: 'var(--spacing-xs)' }}>
-              {upcomingBookings.length}
-            </h3>
-            <p style={{ opacity: 0.9, fontSize: '0.9375rem' }}>Upcoming Bookings</p>
-          </div>
-          
-          <div style={{ 
-            background: 'var(--surface)',
-            padding: 'var(--spacing-xl)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-color)',
-            boxShadow: '0 2px 8px var(--shadow-light)'
-          }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>✅</div>
-            <h3 style={{ 
-              fontSize: '2rem', 
-              fontWeight: '700', 
-              marginBottom: 'var(--spacing-xs)',
-              color: 'var(--text-primary)'
-            }}>
-              {completedBookings.length}
-            </h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Completed Services</p>
-          </div>
-          
-          <div style={{ 
-            background: 'var(--surface)',
-            padding: 'var(--spacing-xl)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-color)',
-            boxShadow: '0 2px 8px var(--shadow-light)'
-          }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>💰</div>
-            <h3 style={{ 
-              fontSize: '2rem', 
-              fontWeight: '700', 
-              marginBottom: 'var(--spacing-xs)',
-              color: 'var(--text-primary)'
-            }}>
-              {formatCurrency(totalSpent)}
-            </h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Total Spent</p>
-          </div>
-          
-          <div style={{ 
-            background: 'var(--surface)',
-            padding: 'var(--spacing-xl)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-color)',
-            boxShadow: '0 2px 8px var(--shadow-light)'
-          }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>⭐</div>
-            <h3 style={{ 
-              fontSize: '2rem', 
-              fontWeight: '700', 
-              marginBottom: 'var(--spacing-xs)',
-              color: 'var(--text-primary)'
-            }}>
-              {favoriteProviders}
-            </h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Favorite Providers</p>
-          </div>
+          {loading ? (
+            <>
+              <SkeletonStat />
+              <SkeletonStat />
+              <SkeletonStat />
+              <SkeletonStat />
+            </>
+          ) : (
+            <>
+              <div style={{ 
+                background: 'linear-gradient(135deg, var(--primary-color) 0%, #7C3AED 100%)',
+                padding: 'var(--spacing-xl)',
+                borderRadius: 'var(--radius-lg)',
+                color: 'white',
+                boxShadow: '0 4px 16px var(--shadow-light)'
+              }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>📅</div>
+                <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: 'var(--spacing-xs)' }}>
+                  {upcomingBookings.length}
+                </h3>
+                <p style={{ opacity: 0.9, fontSize: '0.9375rem' }}>Upcoming Bookings</p>
+              </div>
+              
+              <div style={{ 
+                background: 'var(--surface)',
+                padding: 'var(--spacing-xl)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 2px 8px var(--shadow-light)'
+              }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>✅</div>
+                <h3 style={{ 
+                  fontSize: '2rem', 
+                  fontWeight: '700', 
+                  marginBottom: 'var(--spacing-xs)',
+                  color: 'var(--text-primary)'
+                }}>
+                  {completedBookings.length}
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Completed Services</p>
+              </div>
+              
+              <div style={{ 
+                background: 'var(--surface)',
+                padding: 'var(--spacing-xl)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 2px 8px var(--shadow-light)'
+              }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>💰</div>
+                <h3 style={{ 
+                  fontSize: '2rem', 
+                  fontWeight: '700', 
+                  marginBottom: 'var(--spacing-xs)',
+                  color: 'var(--text-primary)'
+                }}>
+                  {formatCurrency(totalSpent)}
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Total Spent</p>
+              </div>
+              
+              <div style={{ 
+                background: 'var(--surface)',
+                padding: 'var(--spacing-xl)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 2px 8px var(--shadow-light)'
+              }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>⭐</div>
+                <h3 style={{ 
+                  fontSize: '2rem', 
+                  fontWeight: '700', 
+                  marginBottom: 'var(--spacing-xs)',
+                  color: 'var(--text-primary)'
+                }}>
+                  {favoriteProviders}
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Favorite Providers</p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Bookings Section */}
@@ -270,31 +308,25 @@ const ClientDashboard = () => {
             </button>
           </div>
 
-          {upcomingBookings.length === 0 ? (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: 'var(--spacing-3xl)',
-              backgroundColor: 'var(--surface)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--border-color)'
-            }}>
-              <div style={{ fontSize: '4rem', marginBottom: 'var(--spacing-lg)' }}>📅</div>
-              <h3 style={{ 
-                color: 'var(--text-primary)', 
-                marginBottom: 'var(--spacing-sm)',
-                fontFamily: 'var(--font-heading)',
-                fontSize: '1.5rem'
-              }}>
-                No upcoming bookings
-              </h3>
-              <p style={{ color: 'var(--text-secondary)' }}>
-                Book your next beauty service to see it here
-              </p>
-            </div>
+          {loading ? (
+            <SkeletonList count={3} />
+          ) : upcomingBookings.length === 0 ? (
+            <EmptyState
+              icon="📅"
+              title="No upcoming bookings"
+              description="Book your next beauty service to see it here"
+              action={() => {}}
+              actionLabel="Browse Services"
+            />
           ) : (
             <div style={{ display: 'grid', gap: 'var(--spacing-lg)' }}>
               {upcomingBookings.map(booking => (
-                <BookingCard key={booking.id} booking={booking} userRole="client" />
+                <BookingCard 
+                  key={booking.id} 
+                  booking={booking} 
+                  userRole="client"
+                  onStatusChange={handleStatusChange}
+                />
               ))}
             </div>
           )}

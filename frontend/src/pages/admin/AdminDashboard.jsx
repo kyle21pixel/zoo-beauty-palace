@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { userAPI, bookingAPI } from '../../services/api';
 import { handleApiCall, formatCurrency } from '../../utils/apiUtils';
+import { SkeletonStat, SkeletonTable } from '../../components/Skeleton';
+import { EmptyState, ErrorState } from '../../components/EmptyState';
+import { Avatar } from '../../components/Avatar';
+import { Badge } from '../../components/Badge';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
+  const toast = useToast();
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalBookings: 0,
@@ -51,35 +57,18 @@ const AdminDashboard = () => {
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      toast.error('Failed to load admin data');
     }
   };
 
-  if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontSize: '18px',
-        color: 'var(--text-primary)'
-      }}>
-        Loading dashboard...
-      </div>
-    );
-  }
-
   if (error) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        color: 'var(--status-cancelled)',
-        fontSize: '18px'
-      }}>
-        Error: {error}
+      <div style={{ padding: 'var(--spacing-3xl)' }}>
+        <ErrorState 
+          title="Admin Dashboard Error" 
+          description={error} 
+          onRetry={fetchDashboardData} 
+        />
       </div>
     );
   }
@@ -101,20 +90,36 @@ const AdminDashboard = () => {
         borderRight: '1px solid var(--border-color)',
         position: 'fixed',
         height: '100vh',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        zIndex: 10
       }}>
         <div style={{ padding: '0 var(--spacing-lg)', marginBottom: 'var(--spacing-xl)' }}>
           <h2 style={{ 
             fontFamily: 'var(--font-heading)',
             color: 'var(--primary-color)', 
             fontSize: '1.5rem',
-            marginBottom: 'var(--spacing-xs)',
+            marginBottom: 'var(--spacing-lg)',
             fontWeight: '700',
             letterSpacing: '-0.01em'
           }}>
             Admin Control
           </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>System Overview</p>
+          
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 'var(--spacing-md)',
+            padding: 'var(--spacing-md)',
+            background: 'var(--background)',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: 'var(--spacing-md)'
+          }}>
+            <Avatar name={user?.firstName} size="md" status="online" />
+            <div>
+              <p style={{ margin: 0, fontWeight: '600', fontSize: '0.9375rem' }}>{user?.firstName}</p>
+              <Badge variant="primary" size="sm">Admin</Badge>
+            </div>
+          </div>
         </div>
         
         <nav>
@@ -176,76 +181,87 @@ const AdminDashboard = () => {
           gap: 'var(--spacing-lg)',
           marginBottom: 'var(--spacing-3xl)'
         }}>
-          <div style={{ 
-            background: 'linear-gradient(135deg, var(--primary-color) 0%, #7C3AED 100%)',
-            padding: 'var(--spacing-xl)',
-            borderRadius: 'var(--radius-lg)',
-            color: 'white',
-            boxShadow: '0 4px 16px var(--shadow-light)'
-          }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>👥</div>
-            <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: 'var(--spacing-xs)' }}>
-              {stats.totalUsers}
-            </h3>
-            <p style={{ opacity: 0.9, fontSize: '0.9375rem' }}>Total Users</p>
-          </div>
-          
-          <div style={{ 
-            background: 'var(--surface)',
-            padding: 'var(--spacing-xl)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-color)',
-            boxShadow: '0 2px 8px var(--shadow-light)'
-          }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>📅</div>
-            <h3 style={{ 
-              fontSize: '2rem', 
-              fontWeight: '700', 
-              marginBottom: 'var(--spacing-xs)',
-              color: 'var(--text-primary)'
-            }}>
-              {stats.totalBookings}
-            </h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Total Bookings</p>
-          </div>
-          
-          <div style={{ 
-            background: 'var(--surface)',
-            padding: 'var(--spacing-xl)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-color)',
-            boxShadow: '0 2px 8px var(--shadow-light)'
-          }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>💰</div>
-            <h3 style={{ 
-              fontSize: '2rem', 
-              fontWeight: '700', 
-              marginBottom: 'var(--spacing-xs)',
-              color: 'var(--text-primary)'
-            }}>
-              {formatCurrency(stats.totalEarnings)}
-            </h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Total Revenue</p>
-          </div>
-          
-          <div style={{ 
-            background: 'var(--surface)',
-            padding: 'var(--spacing-xl)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-color)',
-            boxShadow: '0 2px 8px var(--shadow-light)'
-          }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>⭐</div>
-            <h3 style={{ 
-              fontSize: '2rem', 
-              fontWeight: '700', 
-              marginBottom: 'var(--spacing-xs)',
-              color: 'var(--text-primary)'
-            }}>
-              {stats.activeProviders}
-            </h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Active Providers</p>
-          </div>
+          {loading ? (
+            <>
+              <SkeletonStat />
+              <SkeletonStat />
+              <SkeletonStat />
+              <SkeletonStat />
+            </>
+          ) : (
+            <>
+              <div style={{ 
+                background: 'linear-gradient(135deg, var(--primary-color) 0%, #7C3AED 100%)',
+                padding: 'var(--spacing-xl)',
+                borderRadius: 'var(--radius-lg)',
+                color: 'white',
+                boxShadow: '0 4px 16px var(--shadow-light)'
+              }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>👥</div>
+                <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: 'var(--spacing-xs)' }}>
+                  {stats.totalUsers}
+                </h3>
+                <p style={{ opacity: 0.9, fontSize: '0.9375rem' }}>Total Users</p>
+              </div>
+              
+              <div style={{ 
+                background: 'var(--surface)',
+                padding: 'var(--spacing-xl)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 2px 8px var(--shadow-light)'
+              }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>📅</div>
+                <h3 style={{ 
+                  fontSize: '2rem', 
+                  fontWeight: '700', 
+                  marginBottom: 'var(--spacing-xs)',
+                  color: 'var(--text-primary)'
+                }}>
+                  {stats.totalBookings}
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Total Bookings</p>
+              </div>
+              
+              <div style={{ 
+                background: 'var(--surface)',
+                padding: 'var(--spacing-xl)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 2px 8px var(--shadow-light)'
+              }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>💰</div>
+                <h3 style={{ 
+                  fontSize: '2rem', 
+                  fontWeight: '700', 
+                  marginBottom: 'var(--spacing-xs)',
+                  color: 'var(--text-primary)'
+                }}>
+                  {formatCurrency(stats.totalEarnings)}
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Total Revenue</p>
+              </div>
+              
+              <div style={{ 
+                background: 'var(--surface)',
+                padding: 'var(--spacing-xl)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 2px 8px var(--shadow-light)'
+              }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>⭐</div>
+                <h3 style={{ 
+                  fontSize: '2rem', 
+                  fontWeight: '700', 
+                  marginBottom: 'var(--spacing-xs)',
+                  color: 'var(--text-primary)'
+                }}>
+                  {stats.activeProviders}
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Active Providers</p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Recent Activity */}
@@ -266,14 +282,22 @@ const AdminDashboard = () => {
           }}>
             Recent Activity
           </h2>
-          <div style={{ 
-            textAlign: 'center', 
-            padding: 'var(--spacing-3xl)',
-            color: 'var(--text-secondary)'
-          }}>
-            <div style={{ fontSize: '4rem', marginBottom: 'var(--spacing-lg)' }}>📊</div>
-            <p>Activity feed coming soon...</p>
-          </div>
+          
+          {loading ? (
+            <SkeletonTable rows={5} columns={3} />
+          ) : (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: 'var(--spacing-3xl)',
+              color: 'var(--text-secondary)'
+            }}>
+              <EmptyState
+                icon="📊"
+                title="No recent activity"
+                description="Activity feed will appear here once users start interacting with the platform"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
