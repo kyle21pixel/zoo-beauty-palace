@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import Logo from './Logo';
 
 import DevSwitcher from './DevSwitcher';
 
@@ -20,16 +21,8 @@ const Navbar = () => {
       borderBottom: '1px solid var(--border-color)'
     }}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <Link to="/" style={{ 
-          fontFamily: 'var(--font-heading)',
-          fontSize: '1.5rem',
-          fontWeight: '700',
-          color: 'var(--primary-color)',
-          letterSpacing: '-0.02em',
-          textDecoration: 'none',
-          marginRight: '48px'
-        }}>
-          Zoo Beauty Palace
+        <Link to="/" style={{ marginRight: '48px', display: 'flex', alignItems: 'center' }}>
+          <Logo width="180px" />
         </Link>
         <div style={{ display: 'flex', gap: '36px', alignItems: 'center' }}>
           <Link to="/services" style={{ color: 'var(--text-primary)', textDecoration: 'none', fontSize: '15px', fontWeight: '500', transition: 'color 0.2s', letterSpacing: '0.01em' }} onMouseEnter={(e) => e.target.style.color = 'var(--primary-color)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-primary)'}>Services</Link>

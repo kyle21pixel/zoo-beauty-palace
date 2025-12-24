@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { getServiceCategoryColor, getServiceCategoryName, formatCurrency } from '../utils/apiUtils';
 import { Badge } from './Badge';
 
@@ -7,171 +8,135 @@ const ServiceCard = ({ service, onClick }) => {
   const categoryName = getServiceCategoryName(service.category);
 
   return (
-    <div 
+    <motion.div 
+      whileHover={{ y: -8, scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
       className="luxury-card"
       style={{
         background: 'var(--surface)',
         border: '1px solid var(--border-color)',
-        borderRadius: 'var(--radius-lg)',
-        padding: 'var(--spacing-xl)',
+        borderRadius: 'var(--radius-xl)',
         cursor: 'pointer',
         position: 'relative',
         overflow: 'hidden',
         height: '100%',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        boxShadow: '0 10px 30px -10px rgba(0,0,0,0.08)',
       }}
       onClick={() => onClick && onClick(service)}
     >
-      {/* Animated Overlay */}
-      <div className="service-card-overlay" style={{
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: 'none',
-        zIndex: 0
-      }} />
-
-      {/* Top accent gradient */}
+      {/* Top Gradient Line */}
       <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '4px',
-        background: `linear-gradient(90deg, ${categoryColor}, var(--secondary-color))`,
-        zIndex: 1
+        height: '6px',
+        width: '100%',
+        background: `linear-gradient(90deg, ${categoryColor}, var(--secondary-color))`
       }} />
 
-      {/* Header */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'flex-start',
-        marginBottom: 'var(--spacing-md)',
-        gap: 'var(--spacing-sm)',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ marginBottom: 'var(--spacing-xs)' }}>
+      <div style={{ padding: 'var(--spacing-xl)', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-lg)' }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '16px',
+            background: `${categoryColor}10`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.75rem',
+            color: categoryColor,
+            boxShadow: `0 4px 12px ${categoryColor}15`
+          }}>
+            {service.icon || '✨'}
+          </div>
+          
+          {service.isPopular && (
             <Badge 
               variant="default"
-              size="sm"
               style={{
-                background: `${categoryColor}10`,
-                color: categoryColor,
-                border: `1px solid ${categoryColor}20`,
-                fontWeight: '600'
+                background: 'var(--accent-color)',
+                color: 'white',
+                border: 'none',
+                boxShadow: '0 2px 8px rgba(255, 159, 28, 0.3)'
               }}
             >
-              {categoryName}
+              POPULAR
             </Badge>
-          </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div style={{ marginBottom: 'var(--spacing-md)' }}>
+          <span style={{ 
+            fontSize: '0.75rem', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.05em', 
+            color: categoryColor,
+            fontWeight: '600',
+            marginBottom: 'var(--spacing-xs)',
+            display: 'block'
+          }}>
+            {categoryName}
+          </span>
           <h3 style={{ 
             fontFamily: 'var(--font-heading)',
-            fontSize: '1.375rem',
+            fontSize: '1.5rem',
             color: 'var(--text-primary)',
             margin: 0,
             fontWeight: '700',
-            lineHeight: 1.3
+            lineHeight: 1.2
           }}>
             {service.name}
           </h3>
         </div>
-        
-        <div className="service-card-icon" style={{
-          fontSize: '2rem',
-          filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))'
+
+        <p style={{ 
+          color: 'var(--text-secondary)',
+          marginBottom: 'var(--spacing-xl)',
+          fontSize: '0.95rem',
+          lineHeight: 1.6,
+          flex: 1,
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden'
         }}>
-          {service.icon || '✨'}
-        </div>
-      </div>
+          {service.description}
+        </p>
 
-      {/* Description */}
-      <p style={{ 
-        color: 'var(--text-secondary)',
-        margin: '0 0 var(--spacing-lg) 0',
-        fontSize: '0.9375rem',
-        lineHeight: 1.6,
-        display: '-webkit-box',
-        WebkitLineClamp: 2,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden',
-        position: 'relative',
-        zIndex: 1,
-        flex: 1
-      }}>
-        {service.description}
-      </p>
-
-      {/* Stats Row */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginTop: 'auto',
-        paddingTop: 'var(--spacing-md)',
-        borderTop: '1px solid var(--border-color)',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ 
-            fontSize: '0.75rem', 
-            color: 'var(--text-secondary)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            fontWeight: '600'
-          }}>
-            Starting at
-          </span>
-          <span className="gradient-text" style={{ 
-            fontSize: '1.25rem', 
-            fontWeight: '700',
-            fontFamily: 'var(--font-heading)'
-          }}>
-            {formatCurrency(service.price)}
-          </span>
-        </div>
-        
+        {/* Footer */}
         <div style={{ 
           display: 'flex', 
-          alignItems: 'center', 
-          gap: 'var(--spacing-xs)',
-          background: 'var(--background)',
-          padding: '4px 12px',
-          borderRadius: '20px',
-          border: '1px solid var(--border-color)'
+          alignItems: 'flex-end', 
+          justifyContent: 'space-between',
+          marginTop: 'auto',
+          paddingTop: 'var(--spacing-lg)',
+          borderTop: '1px solid var(--border-color)'
         }}>
-          <span style={{ fontSize: '1rem' }}>⏱️</span>
-          <span style={{ 
-            fontSize: '0.875rem', 
-            fontWeight: '600',
-            color: 'var(--text-primary)'
+          <div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Starting from</p>
+            <p style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--primary-color)', lineHeight: 1 }}>
+              {formatCurrency(service.price)}
+            </p>
+          </div>
+          
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            color: 'var(--text-secondary)', 
+            fontSize: '0.875rem',
+            background: 'var(--background)',
+            padding: '6px 12px',
+            borderRadius: '20px'
           }}>
-            {service.duration}m
-          </span>
+            <span>⏱️</span>
+            <span>{service.duration} min</span>
+          </div>
         </div>
       </div>
-      
-      {service.isPopular && (
-        <div style={{
-          position: 'absolute',
-          top: '12px',
-          right: '-30px',
-          background: 'linear-gradient(135deg, #FF9F1C 0%, #FBBF24 100%)',
-          color: 'white',
-          padding: '4px 40px',
-          transform: 'rotate(45deg)',
-          fontSize: '0.75rem',
-          fontWeight: '700',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          zIndex: 2
-        }}>
-          POPULAR
-        </div>
-      )}
-    </div>
+    </motion.div>
   );
 };
 

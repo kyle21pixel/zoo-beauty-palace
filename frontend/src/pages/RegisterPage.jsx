@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Input } from '../components/FormInputs';
 import { useToast } from '../context/ToastContext';
+import Logo from '../components/Logo';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -72,6 +73,7 @@ const RegisterPage = () => {
         border: '1px solid rgba(255, 255, 255, 0.2)'
       }}>
         <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-2xl)' }}>
+          <Logo width="200px" style={{ marginBottom: '24px' }} />
           <h1 style={{ 
             fontFamily: 'var(--font-heading)',
             fontSize: '2.5rem',

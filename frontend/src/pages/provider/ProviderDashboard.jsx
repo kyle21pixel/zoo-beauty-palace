@@ -8,6 +8,7 @@ import { SkeletonStat, SkeletonList } from '../../components/Skeleton';
 import { EmptyState, ErrorState } from '../../components/EmptyState';
 import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
+import Logo from '../../components/Logo';
 
 const ProviderDashboard = () => {
   const { user } = useAuth();
@@ -116,13 +117,17 @@ const ProviderDashboard = () => {
         zIndex: 10
       }}>
         <div style={{ padding: '0 var(--spacing-lg)', marginBottom: 'var(--spacing-xl)' }}>
+          <div style={{ marginBottom: 'var(--spacing-lg)', padding: '0 var(--spacing-xs)' }}>
+            <Logo width="100%" />
+          </div>
           <h2 style={{ 
             fontFamily: 'var(--font-heading)',
-            color: 'var(--primary-color)', 
-            fontSize: '1.5rem',
+            color: 'var(--text-primary)', 
+            fontSize: '1.1rem',
             marginBottom: 'var(--spacing-lg)',
-            fontWeight: '700',
-            letterSpacing: '-0.01em'
+            fontWeight: '600',
+            letterSpacing: '-0.01em',
+            opacity: 0.7
           }}>
             Provider Hub
           </h2>

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 150">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=Great+Vibes&amp;display=swap');
+    </style>
+    <linearGradient id="zooGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#D946EF;stop-opacity:1" /> <!-- Pink/Magenta -->
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" /> <!-- Purple -->
+    </linearGradient>
+  </defs>
+
+  <!-- Left Icon Group -->
+  <g transform="translate(75, 75)">
+    <!-- Outer Circle -->
+    <circle cx="0" cy="0" r="70" fill="white" stroke="#F472B6" stroke-width="3" />
+    <circle cx="0" cy="0" r="65" fill="none" stroke="#FBCFE8" stroke-width="1" />
+    
+    <!-- Inner Logo Content (Scaled down to fit in circle) -->
+    <g transform="translate(-55, -40) scale(0.45)">
+       <!-- Stars -->
+       <g fill="#9900CC">
+        <path d="M-35 75 L-20 90 L-35 105 L-50 90 Z" /> <!-- Left Star -->
+        <path d="M-5 45 L10 60 L-5 75 L-20 60 Z" /> <!-- Top Star -->
+        <path d="M-15 110 L0 130 L-15 150 L-30 130 Z" /> <!-- Bottom Star -->
+      </g>
+      
+      <!-- ZOO Infinity -->
+      <g transform="translate(20, 0)">
+        <!-- Z -->
+        <text x="0" y="90" font-family="'Playfair Display', serif" font-size="110" font-weight="bold" fill="#000">Z</text>
+        
+        <!-- Infinity Loop -->
+        <path d="M90 65 C 90 25, 150 25, 170 65 C 190 105, 250 105, 250 65 C 250 25, 190 25, 170 65 C 150 105, 90 105, 90 65 Z" 
+              fill="none" stroke="#000" stroke-width="14" stroke-linecap="round" />
+              
+        <!-- Palace -->
+        <text x="10" y="150" font-family="'Playfair Display', serif" font-size="70" fill="#000">Palace</text>
+        
+        <!-- beauty -->
+        <text x="180" y="120" font-family="'Great Vibes', cursive" font-size="50" fill="#000">beauty</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Right Text Group -->
+  <g transform="translate(160, 0)">
+    <!-- Large ZOO Text -->
+    <text x="0" y="85" font-family="'Playfair Display', serif" font-size="90" font-weight="bold" fill="url(#zooGradient)">ZOO</text>
+    
+    <!-- beauty palace Text -->
+    <text x="5" y="125" font-family="'Playfair Display', serif" font-size="32" font-weight="bold" fill="#D97706" letter-spacing="1">beauty palace</text>
+  </g>
+</svg>

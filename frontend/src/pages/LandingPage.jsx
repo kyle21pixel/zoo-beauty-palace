@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { motion, useAnimation } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '../components/Badge';
 import ServiceCard from '../components/ServiceCard';
+import Footer from '../components/Footer';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -102,14 +105,37 @@ const LandingPage = () => {
     { name: 'Priya Patel', role: 'Salon Owner', photo: 'PP', rating: 5, quote: 'Partnering with Zoo Beauty has increased my bookings by 40%. The platform is seamless and professional.' }
   ];
 
+  // Animation controls for scroll reveals
+  const controls = useAnimation();
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.15 });
+
+  useEffect(() => {
+    if (inView) {
+      controls.start('visible');
+    }
+  }, [controls, inView]);
+
   return (
-    <div style={{ 
-      background: 'var(--background)',
-      color: 'var(--text-primary)',
-      overflowX: 'hidden'
-    }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.7, ease: 'easeOut' }}
+      style={{ 
+        background: 'var(--background)',
+        color: 'var(--text-primary)',
+        overflowX: 'hidden'
+      }}
+    >
       {/* Hero Section */}
-      <section style={{
+      <motion.section
+        initial="hidden"
+        animate={controls}
+        variants={{
+          hidden: { opacity: 0, y: 40 },
+          visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } }
+        }}
+        ref={ref}
+        style={{
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
@@ -157,7 +183,13 @@ const LandingPage = () => {
             alignItems: 'center'
           }}>
             {/* Left Content */}
-            <div className="animate-fade-in-up" style={{ color: 'white' }}>
+            <motion.div 
+              className="animate-fade-in-up"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              style={{ color: 'white' }}
+            >
               <Badge 
                 variant="default" 
                 style={{ 
@@ -199,9 +231,11 @@ const LandingPage = () => {
               </p>
 
               <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap' }}>
-                <button 
+                <motion.button
                   onClick={() => navigate('/services')}
                   className="animate-pulse-glow"
+                  whileHover={{ scale: 1.07, boxShadow: '0 8px 24px rgba(90,45,130,0.18)' }}
+                  whileTap={{ scale: 0.97 }}
                   style={{
                     padding: '16px 32px',
                     background: 'white',
@@ -211,22 +245,16 @@ const LandingPage = () => {
                     fontSize: '1.125rem',
                     fontWeight: '700',
                     cursor: 'pointer',
-                    transition: 'all 0.3s ease',
+                    transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.2)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
                   }}
                 >
                   Book Now
-                </button>
-                <button 
+                </motion.button>
+                <motion.button
                   onClick={() => navigate('/register')}
+                  whileHover={{ scale: 1.05, background: 'rgba(255,255,255,0.2)' }}
+                  whileTap={{ scale: 0.97 }}
                   style={{
                     padding: '16px 32px',
                     background: 'rgba(255, 255, 255, 0.1)',
@@ -237,24 +265,21 @@ const LandingPage = () => {
                     fontWeight: '600',
                     cursor: 'pointer',
                     backdropFilter: 'blur(4px)',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                    e.currentTarget.style.transform = 'translateY(0)';
+                    transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)'
                   }}
                 >
                   Join as Pro
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
 
             {/* Right Image/Illustration */}
-            <div className="animate-float" style={{
+            <motion.div 
+              className="animate-float"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.2 }}
+              style={{
               position: 'relative',
               height: '600px',
               display: 'flex',
@@ -283,7 +308,12 @@ const LandingPage = () => {
               </div>
               
               {/* Floating Cards */}
-              <div className="glass-panel animate-float delay-200" style={{
+              <motion.div 
+                className="glass-panel animate-float delay-200"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                style={{
                 position: 'absolute',
                 top: '20%',
                 left: '-10%',
@@ -299,9 +329,14 @@ const LandingPage = () => {
                   <p style={{ margin: 0, fontWeight: '700', color: 'var(--primary-color)' }}>4.9/5</p>
                   <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Client Rating</p>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="glass-panel animate-float delay-500" style={{
+              <motion.div 
+                className="glass-panel animate-float delay-500"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                style={{
                 position: 'absolute',
                 bottom: '15%',
                 right: '-5%',
@@ -317,14 +352,22 @@ const LandingPage = () => {
                   <p style={{ margin: 0, fontWeight: '700', color: 'var(--primary-color)' }}>Verified</p>
                   <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Professionals</p>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Services Section */}
-      <section style={{ padding: 'var(--spacing-4xl) 0', background: 'var(--surface)' }}>
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={{
+          hidden: { opacity: 0, y: 40 },
+          visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } }
+        }}
+        style={{ padding: 'var(--spacing-4xl) 0', background: 'var(--surface)' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 var(--spacing-3xl)' }}>
           <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-3xl)' }}>
             <Badge variant="primary" style={{ marginBottom: 'var(--spacing-md)' }}>Our Services</Badge>
@@ -347,16 +390,31 @@ const LandingPage = () => {
             gap: 'var(--spacing-xl)'
           }}>
             {services.map((service, index) => (
-              <div key={service.id} className={`animate-fade-in-up delay-${index * 100}`}>
+              <motion.div
+                key={service.id}
+                className={`animate-fade-in-up delay-${index * 100}`}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.7, delay: index * 0.1 }}
+              >
                 <ServiceCard service={service} onClick={() => navigate('/services')} />
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* How It Works */}
-      <section style={{ padding: 'var(--spacing-4xl) 0', position: 'relative' }}>
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={{
+          hidden: { opacity: 0, y: 40 },
+          visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } }
+        }}
+        style={{ padding: 'var(--spacing-4xl) 0', position: 'relative' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 var(--spacing-3xl)' }}>
           <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-3xl)' }}>
             <Badge variant="secondary" style={{ marginBottom: 'var(--spacing-md)' }}>Simple Process</Badge>
@@ -377,7 +435,14 @@ const LandingPage = () => {
             position: 'relative'
           }}>
             {steps.map((step, index) => (
-              <div key={index} className="luxury-card" style={{
+              <motion.div
+                key={index}
+                className="luxury-card"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.7, delay: index * 0.1 }}
+                style={{
                 textAlign: 'center',
                 padding: 'var(--spacing-xl)',
                 background: 'var(--surface)',
@@ -416,14 +481,22 @@ const LandingPage = () => {
                 }}>
                   {step.number}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Testimonials */}
-      <section style={{ 
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={{
+          hidden: { opacity: 0, y: 40 },
+          visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } }
+        }}
+        style={{ 
         padding: 'var(--spacing-4xl) 0', 
         background: 'linear-gradient(180deg, var(--surface) 0%, var(--background) 100%)',
         overflow: 'hidden'
@@ -527,10 +600,18 @@ const LandingPage = () => {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* CTA Section */}
-      <section style={{ padding: 'var(--spacing-4xl) 0' }}>
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={{
+          hidden: { opacity: 0, y: 40 },
+          visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } }
+        }}
+        style={{ padding: 'var(--spacing-4xl) 0' }}>
         <div style={{ 
           maxWidth: '1200px', 
           margin: '0 auto', 
@@ -570,9 +651,11 @@ const LandingPage = () => {
             }}>
               Join thousands of satisfied clients who have transformed their beauty routine with Zoo Beauty Palace.
             </p>
-            <button 
+            <motion.button
               onClick={() => navigate('/register')}
               className="animate-pulse-glow"
+              whileHover={{ scale: 1.08, boxShadow: '0 15px 30px rgba(90,45,130,0.22)' }}
+              whileTap={{ scale: 0.97 }}
               style={{
                 padding: '18px 48px',
                 background: 'white',
@@ -582,24 +665,18 @@ const LandingPage = () => {
                 fontSize: '1.25rem',
                 fontWeight: '700',
                 cursor: 'pointer',
-                transition: 'all 0.3s ease',
+                transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
                 boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)';
-                e.currentTarget.style.boxShadow = '0 15px 30px rgba(0,0,0,0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.2)';
               }}
             >
               Get Started Today
-            </button>
+            </motion.button>
           </div>
         </div>
-      </section>
-    </div>
+      </motion.section>
+      
+      <Footer />
+    </motion.div>
   );
 };
 
