@@ -5,7 +5,9 @@ export const Badge = ({
   variant = 'default', // 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info'
   size = 'md', // 'sm' | 'md' | 'lg'
   icon,
-  pill = false
+  pill = false,
+  className = '',
+  style = {}
 }) => {
   const sizeStyles = {
     sm: {
@@ -58,7 +60,7 @@ export const Badge = ({
     }
   };
 
-  const style = {
+  const combinedStyle = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: icon ? '4px' : '0',
@@ -66,11 +68,12 @@ export const Badge = ({
     lineHeight: 1,
     whiteSpace: 'nowrap',
     ...sizeStyles[size],
-    ...variantStyles[variant]
+    ...variantStyles[variant],
+    ...style
   };
 
   return (
-    <span style={style}>
+    <span className={className} style={combinedStyle}>
       {icon && <span style={{ fontSize: '1em' }}>{icon}</span>}
       {children}
     </span>

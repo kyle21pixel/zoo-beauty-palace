@@ -50,14 +50,17 @@ export const getServiceCategoryName = (category) => {
 
 export const getServiceCategoryColor = (category) => {
   const categoryColors = {
-    'wig-installation': '#5A2D82', // Purple
-    'braiding': '#FF6B6B', // Red
-    'barbering': '#4ECDC4', // Teal
-    'nails': '#45B7D1', // Blue
-    'massage': '#96CEB4', // Green
-    'tattooing': '#FFEAA7', // Yellow
+    'hair': '#FF9F1C',
+    'wig-installation': '#FF9F1C',
+    'braiding': '#FF9F1C',
+    'barber': '#3B82F6',
+    'barbering': '#3B82F6',
+    'nails': '#EC4899',
+    'massage': '#10B981',
+    'tattoo': '#6366F1',
+    'tattooing': '#6366F1',
   };
-  return categoryColors[category] || '#5A2D82';
+  return categoryColors[category] || '#8B5CF6';
 };
 
 export const getUserRoleColor = (role) => {
