@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { bookingAPI, beauticianAPI } from '../../services/api';
-import { handleApiCall } from '../../utils/apiUtils';
+import { handleApiCall, formatCurrency } from '../../utils/apiUtils';
 import BookingCard from '../../components/BookingCard.jsx';
 
 const BeauticianDashboard = () => {
@@ -10,6 +10,7 @@ const BeauticianDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     fetchBeauticianData();
@@ -24,9 +25,8 @@ const BeauticianDashboard = () => {
       );
       setBeauticianData(result.data.beautician);
       
-      // Also fetch bookings for this beautician
       const bookingsResult = await handleApiCall(
-        () => bookingAPI.getByUser(user?.id), // Assuming beautician bookings are retrieved by user id
+        () => bookingAPI.getByUser(user?.id),
         setLoading,
         setError
       );
@@ -45,7 +45,6 @@ const BeauticianDashboard = () => {
       );
       
       if (result.success) {
-        // Update the booking in the local state
         setBookings(prevBookings => 
           prevBookings.map(booking => 
             booking.id === bookingId ? { ...booking, status: newStatus } : booking
@@ -64,7 +63,8 @@ const BeauticianDashboard = () => {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        fontSize: '18px'
+        fontSize: '18px',
+        color: 'var(--text-primary)'
       }}>
         Loading dashboard...
       </div>
@@ -78,7 +78,7 @@ const BeauticianDashboard = () => {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        color: '#DC3545',
+        color: 'var(--status-cancelled)',
         fontSize: '18px'
       }}>
         Error: {error}
@@ -100,70 +100,217 @@ const BeauticianDashboard = () => {
     return bookingDate.toDateString() === today.toDateString();
   });
 
-  const monthlyEarnings = bookings
-    .filter(booking => booking.paymentStatus === 'paid' && booking.status === 'completed')
+  const totalEarnings = bookings
+    .filter(booking => booking.paymentStatus === 'paid')
     .reduce((sum, booking) => sum + booking.totalAmount, 0);
 
+  const navItems = [
+    { id: 'overview', label: 'Overview', icon: '📊' },
+    { id: 'schedule', label: 'Schedule', icon: '📅' },
+    { id: 'availability', label: 'Availability', icon: '⏰' },
+    { id: 'earnings', label: 'Earnings', icon: '💰' }
+  ];
+
   return (
-    <div className="dashboard-container">
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--background)' }}>
       {/* Sidebar */}
-      <div className="sidebar" style={{ backgroundColor: '#FFFFFF' }}>
-        <h3 style={{ padding: '0 20px', color: '#6A4C93' }}>Beautician Dashboard</h3>
-        <ul>
-          <li><a href="/beautician/dashboard" style={{ textDecoration: 'none', color: '#333' }}>Overview</a></li>
-          <li><a href="/beautician/profile" style={{ textDecoration: 'none', color: '#333' }}>Profile</a></li>
-          <li><a href="/beautician/services" style={{ textDecoration: 'none', color: '#333' }}>My Services</a></li>
-          <li><a href="/beautician/bookings" style={{ textDecoration: 'none', color: '#333' }}>Bookings</a></li>
-          <li><a href="/beautician/earnings" style={{ textDecoration: 'none', color: '#333' }}>Earnings</a></li>
-          <li><a href="/beautician/reviews" style={{ textDecoration: 'none', color: '#333' }}>Reviews</a></li>
-        </ul>
+      <div style={{ 
+        width: '280px', 
+        backgroundColor: 'var(--surface)', 
+        padding: 'var(--spacing-xl) 0',
+        borderRight: '1px solid var(--border-color)',
+        position: 'fixed',
+        height: '100vh',
+        overflowY: 'auto'
+      }}>
+        <div style={{ padding: '0 var(--spacing-lg)', marginBottom: 'var(--spacing-xl)' }}>
+          <h2 style={{ 
+            fontFamily: 'var(--font-heading)',
+            color: 'var(--primary-color)', 
+            fontSize: '1.5rem',
+            marginBottom: 'var(--spacing-xs)',
+            fontWeight: '700',
+            letterSpacing: '-0.01em'
+          }}>
+            Beautician Studio
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Your mobile workspace</p>
+        </div>
+        
+        <nav>
+          {navItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              style={{
+                width: '100%',
+                padding: 'var(--spacing-md) var(--spacing-lg)',
+                border: 'none',
+                background: activeTab === item.id ? 'var(--background)' : 'transparent',
+                color: activeTab === item.id ? 'var(--primary-color)' : 'var(--text-primary)',
+                textAlign: 'left',
+                cursor: 'pointer',
+                fontSize: '0.9375rem',
+                fontWeight: activeTab === item.id ? '600' : '400',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--spacing-md)',
+                borderLeft: activeTab === item.id ? '3px solid var(--primary-color)' : '3px solid transparent'
+              }}
+            >
+              <span style={{ fontSize: '1.25rem' }}>{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
       {/* Main Content */}
-      <div className="main-content">
-        <h1 style={{ color: '#6A4C93' }}>Welcome, {beauticianData?.firstName || user?.firstName}!</h1>
-        <p>Manage your services and on-site bookings.</p>
+      <div style={{ 
+        marginLeft: '280px', 
+        flex: 1, 
+        padding: 'var(--spacing-3xl) var(--spacing-2xl)',
+        maxWidth: '1400px'
+      }}>
+        <div style={{ marginBottom: 'var(--spacing-3xl)' }}>
+          <h1 style={{ 
+            fontFamily: 'var(--font-heading)',
+            fontSize: '2.5rem',
+            color: 'var(--text-primary)',
+            marginBottom: 'var(--spacing-sm)',
+            fontWeight: '700',
+            letterSpacing: '-0.02em'
+          }}>
+            Hello, {user?.firstName}!
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.125rem' }}>
+            Ready to create beauty today
+          </p>
+        </div>
         
-        {/* Stats Cards */}
-        <div className="stats-grid">
-          <div className="stat-card" style={{ backgroundColor: '#6A4C93', color: 'white' }}>
-            <h3>Today's Bookings</h3>
-            <p>{todayBookings.length}</p>
+        {/* Stats Grid */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
+          gap: 'var(--spacing-lg)',
+          marginBottom: 'var(--spacing-3xl)'
+        }}>
+          <div style={{ 
+            background: 'linear-gradient(135deg, var(--primary-color) 0%, #7C3AED 100%)',
+            padding: 'var(--spacing-xl)',
+            borderRadius: 'var(--radius-lg)',
+            color: 'white',
+            boxShadow: '0 4px 16px var(--shadow-light)'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>📅</div>
+            <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: 'var(--spacing-xs)' }}>
+              {todayBookings.length}
+            </h3>
+            <p style={{ opacity: 0.9, fontSize: '0.9375rem' }}>Today's Appointments</p>
           </div>
-          <div className="stat-card" style={{ backgroundColor: '#F1C0E8', color: 'black' }}>
-            <h3>Monthly Earnings</h3>
-            <p>${monthlyEarnings.toFixed(2)}</p>
+          
+          <div style={{ 
+            background: 'var(--surface)',
+            padding: 'var(--spacing-xl)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-color)',
+            boxShadow: '0 2px 8px var(--shadow-light)'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>⏱️</div>
+            <h3 style={{ 
+              fontSize: '2rem', 
+              fontWeight: '700', 
+              marginBottom: 'var(--spacing-xs)',
+              color: 'var(--text-primary)'
+            }}>
+              {upcomingBookings.length}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Upcoming Jobs</p>
           </div>
-          <div className="stat-card" style={{ backgroundColor: '#FF9F1C', color: 'black' }}>
-            <h3>Completed</h3>
-            <p>{completedBookings.length}</p>
+          
+          <div style={{ 
+            background: 'var(--surface)',
+            padding: 'var(--spacing-xl)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-color)',
+            boxShadow: '0 2px 8px var(--shadow-light)'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>✅</div>
+            <h3 style={{ 
+              fontSize: '2rem', 
+              fontWeight: '700', 
+              marginBottom: 'var(--spacing-xs)',
+              color: 'var(--text-primary)'
+            }}>
+              {completedBookings.length}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Completed</p>
           </div>
-          <div className="stat-card" style={{ backgroundColor: '#FFFFFF', color: 'black', border: '1px solid #6A4C93' }}>
-            <h3>Rating</h3>
-            <p>{beauticianData?.rating?.average || 0.0}</p>
+          
+          <div style={{ 
+            background: 'var(--surface)',
+            padding: 'var(--spacing-xl)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-color)',
+            boxShadow: '0 2px 8px var(--shadow-light)'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>💰</div>
+            <h3 style={{ 
+              fontSize: '2rem', 
+              fontWeight: '700', 
+              marginBottom: 'var(--spacing-xs)',
+              color: 'var(--text-primary)'
+            }}>
+              {formatCurrency(totalEarnings)}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Total Earned</p>
           </div>
         </div>
 
-        {/* Recent Bookings */}
-        <div className="card">
-          <h2 style={{ color: '#6A4C93' }}>Recent Bookings</h2>
-          {upcomingBookings.length > 0 ? (
-            upcomingBookings.slice(0, 5).map(booking => (
-              <BookingCard 
-                key={booking.id} 
-                booking={booking} 
-                onStatusChange={handleStatusChange}
-              />
-            ))
+        {/* Schedule Section */}
+        <div>
+          <h2 style={{ 
+            fontFamily: 'var(--font-heading)',
+            fontSize: '1.75rem',
+            color: 'var(--text-primary)',
+            marginBottom: 'var(--spacing-lg)',
+            fontWeight: '700',
+            letterSpacing: '-0.01em'
+          }}>
+            Your Schedule
+          </h2>
+
+          {upcomingBookings.length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: 'var(--spacing-3xl)',
+              backgroundColor: 'var(--surface)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--border-color)'
+            }}>
+              <div style={{ fontSize: '4rem', marginBottom: 'var(--spacing-lg)' }}>📅</div>
+              <h3 style={{ 
+                color: 'var(--text-primary)', 
+                marginBottom: 'var(--spacing-sm)',
+                fontFamily: 'var(--font-heading)',
+                fontSize: '1.5rem'
+              }}>
+                No upcoming appointments
+              </h3>
+              <p style={{ color: 'var(--text-secondary)' }}>
+                Your schedule is clear
+              </p>
+            </div>
           ) : (
-            <p>No upcoming bookings to display.</p>
-          )}
-          
-          {completedBookings.length > 0 && (
-            <div style={{ marginTop: '20px' }}>
-              <h3 style={{ color: '#666' }}>Recent Completed</h3>
-              {completedBookings.slice(0, 3).map(booking => (
-                <BookingCard key={`completed-${booking.id}`} booking={booking} />
+            <div style={{ display: 'grid', gap: 'var(--spacing-lg)' }}>
+              {upcomingBookings.map(booking => (
+                <BookingCard 
+                  key={booking.id} 
+                  booking={booking} 
+                  userRole="beautician"
+                  onStatusChange={handleStatusChange}
+                />
               ))}
             </div>
           )}

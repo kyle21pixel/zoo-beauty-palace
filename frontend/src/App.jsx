@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import './App.css';
 
@@ -20,8 +21,9 @@ import BookingPage from './pages/BookingPage';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
         <div className="App">
           <Navbar />
           <Routes>
@@ -60,8 +62,9 @@ function App() {
             } />
           </Routes>
         </div>
-      </Router>
-    </AuthProvider>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

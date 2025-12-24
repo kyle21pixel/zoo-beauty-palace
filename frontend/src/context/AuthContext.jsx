@@ -118,6 +118,22 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateProfile,
+    // Dev-only helper: allows setting a mock user for development testing
+    devSignIn: (role) => {
+      if (import.meta.env.VITE_ENABLE_DEV_SWITCHER !== 'true') return;
+      const mockUser = {
+        id: 'dev-user',
+        email: `${role}@dev.local`,
+        firstName: 'Dev',
+        lastName: role.charAt(0).toUpperCase() + role.slice(1),
+        role,
+      };
+      const mockToken = 'dev-token';
+      localStorage.setItem('token', mockToken);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      setUser(mockUser);
+      setToken(mockToken);
+    },
     loading,
     isAuthenticated: !!user,
   };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { userAPI, bookingAPI } from '../../services/api';
-import { handleApiCall } from '../../utils/apiUtils';
+import { handleApiCall, formatCurrency } from '../../utils/apiUtils';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -11,9 +11,9 @@ const AdminDashboard = () => {
     totalEarnings: 0,
     activeProviders: 0
   });
-  const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     fetchDashboardData();
@@ -21,7 +21,6 @@ const AdminDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch all necessary data
       const usersResult = await handleApiCall(
         () => userAPI.getAll(),
         setLoading,
@@ -34,7 +33,6 @@ const AdminDashboard = () => {
         setError
       );
       
-      // Calculate stats
       const totalUsers = usersResult.data.users.length;
       const totalBookings = bookingsResult.data.bookings.length;
       const totalEarnings = bookingsResult.data.bookings
@@ -51,13 +49,6 @@ const AdminDashboard = () => {
         totalEarnings,
         activeProviders
       });
-      
-      // Get recent activity (last 5 bookings)
-      const sortedBookings = [...bookingsResult.data.bookings].sort((a, b) => 
-        new Date(b.createdAt) - new Date(a.createdAt)
-      );
-      
-      setRecentActivity(sortedBookings.slice(0, 5));
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     }
@@ -70,7 +61,8 @@ const AdminDashboard = () => {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        fontSize: '18px'
+        fontSize: '18px',
+        color: 'var(--text-primary)'
       }}>
         Loading dashboard...
       </div>
@@ -84,7 +76,7 @@ const AdminDashboard = () => {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        color: '#DC3545',
+        color: 'var(--status-cancelled)',
         fontSize: '18px'
       }}>
         Error: {error}
@@ -92,77 +84,196 @@ const AdminDashboard = () => {
     );
   }
 
+  const navItems = [
+    { id: 'overview', label: 'Overview', icon: '📊' },
+    { id: 'users', label: 'Users', icon: '👥' },
+    { id: 'bookings', label: 'Bookings', icon: '📅' },
+    { id: 'analytics', label: 'Analytics', icon: '📈' }
+  ];
+
   return (
-    <div className="dashboard-container">
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--background)' }}>
       {/* Sidebar */}
-      <div className="sidebar" style={{ backgroundColor: '#FFFFFF' }}>
-        <h3 style={{ padding: '0 20px', color: '#5A2D82' }}>Admin Dashboard</h3>
-        <ul>
-          <li><a href="/admin/dashboard" style={{ textDecoration: 'none', color: '#333' }}>Overview</a></li>
-          <li><a href="/admin/users" style={{ textDecoration: 'none', color: '#333' }}>Manage Users</a></li>
-          <li><a href="/admin/services" style={{ textDecoration: 'none', color: '#333' }}>Manage Services</a></li>
-          <li><a href="/admin/bookings" style={{ textDecoration: 'none', color: '#333' }}>Bookings</a></li>
-          <li><a href="/admin/analytics" style={{ textDecoration: 'none', color: '#333' }}>Analytics</a></li>
-          <li><a href="/admin/notifications" style={{ textDecoration: 'none', color: '#333' }}>Notifications</a></li>
-        </ul>
+      <div style={{ 
+        width: '280px', 
+        backgroundColor: 'var(--surface)', 
+        padding: 'var(--spacing-xl) 0',
+        borderRight: '1px solid var(--border-color)',
+        position: 'fixed',
+        height: '100vh',
+        overflowY: 'auto'
+      }}>
+        <div style={{ padding: '0 var(--spacing-lg)', marginBottom: 'var(--spacing-xl)' }}>
+          <h2 style={{ 
+            fontFamily: 'var(--font-heading)',
+            color: 'var(--primary-color)', 
+            fontSize: '1.5rem',
+            marginBottom: 'var(--spacing-xs)',
+            fontWeight: '700',
+            letterSpacing: '-0.01em'
+          }}>
+            Admin Control
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>System Overview</p>
+        </div>
+        
+        <nav>
+          {navItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              style={{
+                width: '100%',
+                padding: 'var(--spacing-md) var(--spacing-lg)',
+                border: 'none',
+                background: activeTab === item.id ? 'var(--background)' : 'transparent',
+                color: activeTab === item.id ? 'var(--primary-color)' : 'var(--text-primary)',
+                textAlign: 'left',
+                cursor: 'pointer',
+                fontSize: '0.9375rem',
+                fontWeight: activeTab === item.id ? '600' : '400',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--spacing-md)',
+                borderLeft: activeTab === item.id ? '3px solid var(--primary-color)' : '3px solid transparent'
+              }}
+            >
+              <span style={{ fontSize: '1.25rem' }}>{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
       {/* Main Content */}
-      <div className="main-content">
-        <h1 style={{ color: '#5A2D82' }}>Welcome, {user?.firstName}!</h1>
-        <p>Manage the entire system from here.</p>
-        
-        <div className="stats-grid">
-          <div className="stat-card" style={{ backgroundColor: '#5A2D82', color: 'white' }}>
-            <h3>Total Users</h3>
-            <p>{stats.totalUsers}</p>
-          </div>
-          <div className="stat-card" style={{ backgroundColor: '#F8C8DC', color: 'black' }}>
-            <h3>Total Bookings</h3>
-            <p>{stats.totalBookings}</p>
-          </div>
-          <div className="stat-card" style={{ backgroundColor: '#FFD166', color: 'black' }}>
-            <h3>Revenue</h3>
-            <p>${stats.totalEarnings.toFixed(2)}</p>
-          </div>
-          <div className="stat-card" style={{ backgroundColor: '#FFFFFF', color: 'black', border: '1px solid #5A2D82' }}>
-            <h3>Active Providers</h3>
-            <p>{stats.activeProviders}</p>
-          </div>
+      <div style={{ 
+        marginLeft: '280px', 
+        flex: 1, 
+        padding: 'var(--spacing-3xl) var(--spacing-2xl)',
+        maxWidth: '1400px'
+      }}>
+        <div style={{ marginBottom: 'var(--spacing-3xl)' }}>
+          <h1 style={{ 
+            fontFamily: 'var(--font-heading)',
+            fontSize: '2.5rem',
+            color: 'var(--text-primary)',
+            marginBottom: 'var(--spacing-sm)',
+            fontWeight: '700',
+            letterSpacing: '-0.02em'
+          }}>
+            Admin Dashboard
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.125rem' }}>
+            Platform analytics and management
+          </p>
         </div>
         
-        <div className="card">
-          <h2 style={{ color: '#5A2D82' }}>Recent Activity</h2>
-          {recentActivity.length > 0 ? (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th>Booking ID</th>
-                  <th>Client</th>
-                  <th>Service</th>
-                  <th>Provider</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentActivity.map(booking => (
-                  <tr key={booking.id}>
-                    <td>{booking.id}</td>
-                    <td>{booking.client?.firstName || 'N/A'} {booking.client?.lastName || ''}</td>
-                    <td>{booking.service?.name || 'N/A'}</td>
-                    <td>{booking.provider?.businessName || booking.provider?.firstName || 'N/A'}</td>
-                    <td>{new Date(booking.scheduledDate).toLocaleDateString()}</td>
-                    <td><span style={{ padding: '4px 8px', borderRadius: '4px', backgroundColor: booking.status === 'completed' ? '#d4edda' : booking.status === 'confirmed' ? '#cce5ff' : booking.status === 'pending' ? '#fff3cd' : '#f8d7da', color: booking.status === 'completed' ? '#155724' : booking.status === 'confirmed' ? '#004085' : booking.status === 'pending' ? '#856404' : '#721c24' }}>{booking.status}</span></td>
-                    <td>${booking.totalAmount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p>No recent activity to display.</p>
-          )}
+        {/* Stats Grid */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
+          gap: 'var(--spacing-lg)',
+          marginBottom: 'var(--spacing-3xl)'
+        }}>
+          <div style={{ 
+            background: 'linear-gradient(135deg, var(--primary-color) 0%, #7C3AED 100%)',
+            padding: 'var(--spacing-xl)',
+            borderRadius: 'var(--radius-lg)',
+            color: 'white',
+            boxShadow: '0 4px 16px var(--shadow-light)'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>👥</div>
+            <h3 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: 'var(--spacing-xs)' }}>
+              {stats.totalUsers}
+            </h3>
+            <p style={{ opacity: 0.9, fontSize: '0.9375rem' }}>Total Users</p>
+          </div>
+          
+          <div style={{ 
+            background: 'var(--surface)',
+            padding: 'var(--spacing-xl)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-color)',
+            boxShadow: '0 2px 8px var(--shadow-light)'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>📅</div>
+            <h3 style={{ 
+              fontSize: '2rem', 
+              fontWeight: '700', 
+              marginBottom: 'var(--spacing-xs)',
+              color: 'var(--text-primary)'
+            }}>
+              {stats.totalBookings}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Total Bookings</p>
+          </div>
+          
+          <div style={{ 
+            background: 'var(--surface)',
+            padding: 'var(--spacing-xl)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-color)',
+            boxShadow: '0 2px 8px var(--shadow-light)'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>💰</div>
+            <h3 style={{ 
+              fontSize: '2rem', 
+              fontWeight: '700', 
+              marginBottom: 'var(--spacing-xs)',
+              color: 'var(--text-primary)'
+            }}>
+              {formatCurrency(stats.totalEarnings)}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Total Revenue</p>
+          </div>
+          
+          <div style={{ 
+            background: 'var(--surface)',
+            padding: 'var(--spacing-xl)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-color)',
+            boxShadow: '0 2px 8px var(--shadow-light)'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 'var(--spacing-sm)' }}>⭐</div>
+            <h3 style={{ 
+              fontSize: '2rem', 
+              fontWeight: '700', 
+              marginBottom: 'var(--spacing-xs)',
+              color: 'var(--text-primary)'
+            }}>
+              {stats.activeProviders}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>Active Providers</p>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div style={{ 
+          background: 'var(--surface)',
+          padding: 'var(--spacing-xl)',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border-color)',
+          boxShadow: '0 2px 8px var(--shadow-light)'
+        }}>
+          <h2 style={{ 
+            fontFamily: 'var(--font-heading)',
+            fontSize: '1.75rem',
+            color: 'var(--text-primary)',
+            marginBottom: 'var(--spacing-lg)',
+            fontWeight: '700',
+            letterSpacing: '-0.01em'
+          }}>
+            Recent Activity
+          </h2>
+          <div style={{ 
+            textAlign: 'center', 
+            padding: 'var(--spacing-3xl)',
+            color: 'var(--text-secondary)'
+          }}>
+            <div style={{ fontSize: '4rem', marginBottom: 'var(--spacing-lg)' }}>📊</div>
+            <p>Activity feed coming soon...</p>
+          </div>
         </div>
       </div>
     </div>
