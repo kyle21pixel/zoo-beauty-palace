@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Input } from '../components/FormInputs';
+import { useToast } from '../context/ToastContext';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const toast = useToast();
 
   const handleChange = (e) => {
     setFormData({
@@ -22,80 +24,111 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
     
     try {
       const result = await login(formData.email, formData.password);
       
       if (result.success) {
+        toast.success('Welcome back!');
         // Redirect based on user role
         switch(result.user.role) {
-          case 'admin':
-            navigate('/admin');
-            break;
-          case 'provider':
-            navigate('/provider');
-            break;
-          case 'beautician':
-            navigate('/beautician');
-            break;
-          case 'client':
-            navigate('/client');
-            break;
-          default:
-            navigate('/');
+          case 'admin': navigate('/admin'); break;
+          case 'provider': navigate('/provider'); break;
+          case 'beautician': navigate('/beautician'); break;
+          case 'client': navigate('/client'); break;
+          default: navigate('/');
         }
       } else {
-        setError(result.message);
+        toast.error(result.message || 'Login failed');
       }
-    } catch (err) {
-      setError('An error occurred during login');
+    } catch (error) {
+      toast.error('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <div className="login-container" style={{ backgroundColor: 'white', padding: '40px', borderRadius: '10px', boxShadow: '0 5px 15px rgba(0,0,0,0.1)', width: '100%', maxWidth: '400px' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#5A2D82' }}>Login to Zoo Beauty Palace</h2>
-        {error && <div style={{ color: 'red', marginBottom: '15px', textAlign: 'center' }}>{error}</div>}
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="form-group" style={{ marginBottom: '20px' }}>
-            <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>Email</label>
-            <input 
-              type="email" 
-              name="email"
-              className="form-input" 
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleChange}
-              style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '16px' }}
-              required
-              disabled={loading}
-            />
-          </div>
-          <div className="form-group" style={{ marginBottom: '25px' }}>
-            <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>Password</label>
-            <input 
-              type="password" 
-              name="password"
-              className="form-input" 
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-              style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '16px' }}
-              required
-              disabled={loading}
-            />
-          </div>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px', fontSize: '16px', marginBottom: '20px' }} disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, var(--background) 0%, var(--surface) 100%)',
+      padding: 'var(--spacing-xl)'
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '450px',
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(10px)',
+        padding: 'var(--spacing-3xl)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.2)'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-2xl)' }}>
+          <h1 style={{ 
+            fontFamily: 'var(--font-heading)',
+            fontSize: '2.5rem',
+            color: 'var(--primary-color)',
+            marginBottom: 'var(--spacing-xs)'
+          }}>Welcome Back</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>Sign in to continue your beauty journey</p>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+          <Input
+            label="Email Address"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="you@example.com"
+            required
+            icon="✉️"
+          />
+          
+          <Input
+            label="Password"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="••••••••"
+            required
+            icon="🔒"
+          />
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            style={{
+              marginTop: 'var(--spacing-md)',
+              padding: 'var(--spacing-md)',
+              background: 'linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1,
+              transition: 'transform 0.2s',
+              boxShadow: '0 4px 12px var(--shadow-light)'
+            }}
+          >
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-        <div className="login-options" style={{ textAlign: 'center' }}>
-          <p style={{ marginBottom: '10px' }}>Don't have an account? <Link to="/register" style={{ color: '#5A2D82', fontWeight: 'bold' }}>Register</Link></p>
-          <p><a href="/forgot-password" style={{ color: '#5A2D82' }}>Forgot Password?</a></p>
+
+        <div style={{ marginTop: 'var(--spacing-xl)', textAlign: 'center', fontSize: '0.9375rem' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>
+            Don't have an account?{' '}
+            <Link to="/register" style={{ color: 'var(--primary-color)', fontWeight: '600', textDecoration: 'none' }}>
+              Create Account
+            </Link>
+          </p>
         </div>
       </div>
     </div>

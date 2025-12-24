@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Input } from '../components/FormInputs';
+import { useToast } from '../context/ToastContext';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -9,12 +11,12 @@ const RegisterPage = () => {
     email: '',
     phone: '',
     password: '',
-    role: ''
+    role: 'client'
   });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { register } = useAuth();
+  const toast = useToast();
 
   const handleChange = (e) => {
     setFormData({
@@ -26,139 +28,160 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
     
     try {
       const result = await register(formData);
       
       if (result.success) {
+        toast.success('Account created successfully!');
         // Redirect based on user role
         switch(result.user.role) {
-          case 'admin':
-            navigate('/admin');
-            break;
-          case 'provider':
-            navigate('/provider');
-            break;
-          case 'beautician':
-            navigate('/beautician');
-            break;
-          case 'client':
-            navigate('/client');
-            break;
-          default:
-            navigate('/');
+          case 'admin': navigate('/admin'); break;
+          case 'provider': navigate('/provider'); break;
+          case 'beautician': navigate('/beautician'); break;
+          case 'client': navigate('/client'); break;
+          default: navigate('/');
         }
       } else {
-        setError(result.message);
+        toast.error(result.message || 'Registration failed');
       }
-    } catch (err) {
-      setError('An error occurred during registration');
+    } catch (error) {
+      toast.error('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="register-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <div className="register-container" style={{ backgroundColor: 'white', padding: '40px', borderRadius: '10px', boxShadow: '0 5px 15px rgba(0,0,0,0.1)', width: '100%', maxWidth: '500px' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#5A2D82' }}>Join Zoo Beauty Palace</h2>
-        {error && <div style={{ color: 'red', marginBottom: '15px', textAlign: 'center' }}>{error}</div>}
-        <form className="register-form" onSubmit={handleSubmit}>
-          <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
-            <div className="form-group">
-              <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>First Name</label>
-              <input 
-                type="text" 
-                name="firstName"
-                className="form-input" 
-                placeholder="Enter your first name"
-                value={formData.firstName}
-                onChange={handleChange}
-                style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '16px' }}
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>Last Name</label>
-              <input 
-                type="text" 
-                name="lastName"
-                className="form-input" 
-                placeholder="Enter your last name"
-                value={formData.lastName}
-                onChange={handleChange}
-                style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '16px' }}
-                required
-                disabled={loading}
-              />
-            </div>
-          </div>
-          <div className="form-group" style={{ marginBottom: '20px' }}>
-            <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>Email</label>
-            <input 
-              type="email" 
-              name="email"
-              className="form-input" 
-              placeholder="Enter your email"
-              value={formData.email}
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, var(--background) 0%, var(--surface) 100%)',
+      padding: 'var(--spacing-xl)'
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '550px',
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(10px)',
+        padding: 'var(--spacing-3xl)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.2)'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-2xl)' }}>
+          <h1 style={{ 
+            fontFamily: 'var(--font-heading)',
+            fontSize: '2.5rem',
+            color: 'var(--primary-color)',
+            marginBottom: 'var(--spacing-xs)'
+          }}>Join Zoo Beauty</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>Create your account to get started</p>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)' }}>
+            <Input
+              label="First Name"
+              name="firstName"
+              value={formData.firstName}
               onChange={handleChange}
-              style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '16px' }}
               required
-              disabled={loading}
             />
-          </div>
-          <div className="form-group" style={{ marginBottom: '20px' }}>
-            <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>Phone</label>
-            <input 
-              type="tel" 
-              name="phone"
-              className="form-input" 
-              placeholder="Enter your phone number"
-              value={formData.phone}
+            <Input
+              label="Last Name"
+              name="lastName"
+              value={formData.lastName}
               onChange={handleChange}
-              style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '16px' }}
-              disabled={loading}
-            />
-          </div>
-          <div className="form-group" style={{ marginBottom: '20px' }}>
-            <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>Password</label>
-            <input 
-              type="password" 
-              name="password"
-              className="form-input" 
-              placeholder="Create a password"
-              value={formData.password}
-              onChange={handleChange}
-              style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '16px' }}
               required
-              disabled={loading}
             />
           </div>
-          <div className="form-group" style={{ marginBottom: '25px' }}>
-            <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>Role</label>
-            <select 
+
+          <Input
+            label="Email Address"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            icon="✉️"
+          />
+
+          <Input
+            label="Phone Number"
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            required
+            icon="📱"
+          />
+          
+          <Input
+            label="Password"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            icon="🔒"
+          />
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+            <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-primary)' }}>I want to join as a:</label>
+            <select
               name="role"
-              className="form-input" 
               value={formData.role}
               onChange={handleChange}
-              style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '5px', fontSize: '16px' }}
-              required
-              disabled={loading}
+              style={{
+                width: '100%',
+                padding: 'var(--spacing-md)',
+                fontSize: '0.9375rem',
+                border: '2px solid var(--border-color)',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--surface)',
+                color: 'var(--text-primary)',
+                outline: 'none',
+                fontFamily: 'var(--font-body)'
+              }}
             >
-              <option value="">Select your role</option>
-              <option value="client">Client</option>
-              <option value="provider">Beauty Provider</option>
-              <option value="beautician">Freelance Beautician</option>
+              <option value="client">Client (I want to book services)</option>
+              <option value="provider">Provider (I own a salon/business)</option>
+              <option value="beautician">Beautician (I offer services)</option>
             </select>
           </div>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px', fontSize: '16px', marginBottom: '20px' }} disabled={loading}>
-            {loading ? 'Registering...' : 'Register'}
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            style={{
+              marginTop: 'var(--spacing-md)',
+              padding: 'var(--spacing-md)',
+              background: 'linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1,
+              transition: 'transform 0.2s',
+              boxShadow: '0 4px 12px var(--shadow-light)'
+            }}
+          >
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
-        <div className="register-options" style={{ textAlign: 'center' }}>
-          <p style={{ marginBottom: '10px' }}>Already have an account? <Link to="/login" style={{ color: '#5A2D82', fontWeight: 'bold' }}>Login</Link></p>
+
+        <div style={{ marginTop: 'var(--spacing-xl)', textAlign: 'center', fontSize: '0.9375rem' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>
+            Already have an account?{' '}
+            <Link to="/login" style={{ color: 'var(--primary-color)', fontWeight: '600', textDecoration: 'none' }}>
+              Sign In
+            </Link>
+          </p>
         </div>
       </div>
     </div>

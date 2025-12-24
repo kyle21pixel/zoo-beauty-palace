@@ -10,7 +10,7 @@ import './App.css';
 import Navbar from './components/Navbar';
 
 // Import pages
-import HomePage from './pages/HomePage';
+import LandingPage from './pages/LandingPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ProviderDashboard from './pages/provider/ProviderDashboard';
 import BeauticianDashboard from './pages/beautician/BeauticianDashboard';
@@ -29,7 +29,7 @@ function App() {
           <div className="App">
             <Navbar />
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/services" element={<ServiceSelectionPage />} />
