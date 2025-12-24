@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
+import { ToastProvider } from './context/ToastContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import './App.css';
 
@@ -22,10 +23,11 @@ import BookingPage from './pages/BookingPage';
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <Router>
-        <div className="App">
-          <Navbar />
+      <ToastProvider>
+        <AuthProvider>
+          <Router>
+          <div className="App">
+            <Navbar />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -64,6 +66,7 @@ function App() {
         </div>
         </Router>
       </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }
