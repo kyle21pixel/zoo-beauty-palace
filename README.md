@@ -1,175 +1,118 @@
-# zoo-beauty-palace
-project
-# Zoo Beauty Palace
+# 🦓 Zoo Beauty Palace
 
-Zoo Beauty Palace is a full-stack beauty service platform inspired by ride-hailing systems like Uber/Bolt. It connects clients with beauty providers (salons) and freelance beauticians for both **on-route** and **on-site** beauty services via web and mobile applications.
+A full-scale, production-ready beauty service platform with premium UI/UX.
 
----
+## 🏗️ Architecture
 
-## 🚀 Overview
+This is a monorepo containing:
 
-The platform allows clients to request beauty services in two ways:
+### Apps
+- **Client App** (`apps/client`) - Next.js PWA for customers
+- **Provider Dashboard** (`apps/provider-dashboard`) - Web dashboard for salon owners
+- **Beautician Mobile** (`apps/beautician-mobile`) - React Native app for mobile beauticians
+- **Admin Dashboard** (`apps/admin-dashboard`) - Platform administration panel
 
-- **On-Route Services**  
-  Clients visit registered beauty providers (salons). Requests are routed to provider dashboards.
-
-- **On-Site Services**  
-  Freelance beauticians travel to the client’s location. Clients can browse, compare, and select their preferred beautician.
-
-The system supports real-time bookings, location tracking, payments, and role-based dashboards.
-
----
-
-## 👥 User Roles
-
-### 1. Admin
-- Full system control
-- Manage users (clients, providers, freelancers)
-- Manage services and categories
-- Monitor bookings, revenue, and analytics
-- Send system-wide notifications
-
-### 2. Beauty Providers (Salons)
-- Offer **on-route** services
-- Manage business profile, services, pricing, and availability
-- Accept or reject booking requests
-- View earnings, reviews, and service history
-
-### 3. Freelance Beauticians
-- Offer **on-site** services
-- Mobile-first dashboard/app
-- Accept or reject client requests
-- Live location tracking during jobs
-- Earnings and booking history
-
-### 4. Clients
-- Browse services and providers
-- Choose on-route or on-site services
-- Select preferred beauticians
-- Track bookings in real time
-- Make payments and leave reviews
-
----
-
-## 💄 Services Offered
-
-- Wig Installation  
-- Braiding  
-- Barbering  
-- Nails  
-- Massage  
-- Tattooing  
-
----
-
-## 🏗️ System Architecture
-
-### Frontend
-- Web: React.js
-- Mobile: React Native or Flutter
-- Responsive, mobile-first design
-- Shared component-based design system
+### Packages
+- **Design System** (`packages/ui`) - Shared components and design tokens
+- **Types** (`packages/types`) - Shared TypeScript types
+- **Utils** (`packages/utils`) - Shared utilities
 
 ### Backend
-- Node.js (Express) / Django / Laravel
-- RESTful APIs
-- JWT / OAuth2 authentication
-- Role-Based Access Control (RBAC)
+- **API** (`backend`) - Node.js/Express API with real-time support
 
-### Database
-- MongoDB or PostgreSQL
+## 🎨 Design Language
 
-### Real-Time Features
-- WebSockets for live updates
-- Push notifications (mobile)
+**Premium Beauty-Tech Aesthetic**
 
-### Payments
-- Stripe / PayPal integration
+### Colors
+- Primary: Soft Rose / Blush Pink
+- Secondary: Deep Plum / Royal Purple
+- Accent: Gold / Champagne
+- Neutrals: Ivory, Charcoal, Warm Gray
 
----
+### Features
+- Glassmorphism accents
+- Smooth gradients
+- Rounded cards
+- Micro-interactions
+- Light & Dark mode
 
-## 🎨 UI / UX Design
+## 🚀 Getting Started
 
-### Design Principles
-- Elegant, luxury beauty-tech aesthetic
-- Card-based layouts
-- Rounded corners (12–16px)
-- Soft shadows and subtle animations
-- Minimal clutter, clear primary actions
+### Prerequisites
+- Node.js >= 18
+- npm >= 9
 
-### Color Theme
-- **Primary:** Deep Violet / Royal Purple
-- **Secondary:** Soft Pink / Lavender
-- **Accent:** Gold / Orange-Gold
-- **Background:** White / Light Gray
-- **Text:** Dark Gray / Black
+### Installation
 
-Each dashboard (Admin, Provider, Freelancer, Client) follows this theme with slight role-based variations.
+```bash
+# Install all dependencies
+npm install
 
----
+# Start all services in development mode
+npm run dev
 
-## 📊 Dashboards
+# Start individual services
+npm run dev:client        # Client app on port 3000
+npm run dev:provider      # Provider dashboard on port 3001
+npm run dev:admin         # Admin dashboard on port 3002
+npm run dev:beautician    # Beautician mobile app
+npm run dev:backend       # Backend API on port 4000
+```
 
-### Admin Dashboard (Web)
-- KPI cards and analytics charts
-- User and service management
-- Booking and revenue monitoring
+## 📱 Applications
 
-### Provider Dashboard (Web & Mobile)
-- Booking calendar
-- Client details and tracking
-- Service and pricing management
+### Client App (http://localhost:3000)
+- Browse services and beauticians
+- Service booking flow
+- Booking history
+- Live tracking
+- Reviews & ratings
 
-### Freelance Beautician App (Mobile)
-- Online/offline status
-- Real-time job requests
-- Map-based job tracking
-- Earnings dashboard
+### Provider Dashboard (http://localhost:3001)
+- Service management
+- Booking management
+- Staff management
+- Analytics
+- Customer management
 
-### Client App / Web
-- Service selection (on-route / on-site)
-- Provider & beautician profiles
-- Booking, payment, and tracking
-- Reviews and booking history
+### Beautician Mobile App
+- Job requests feed
+- Accept/decline jobs
+- Navigation & tracking
+- Availability toggle
+- Earnings overview
 
----
+### Admin Dashboard (http://localhost:3002)
+- User management
+- Service categories
+- Pricing & commissions
+- Analytics & reports
+- Platform moderation
 
-## 🔐 Security & Best Practices
+## ⚠️ Development Notes
 
-- Password hashing
-- Encrypted payment data
-- Secure API access
-- Input validation and rate limiting
-- Scalable, modular architecture
+**NO AUTHENTICATION INITIALLY**
+- All features are built without login/signup
+- Mock users and open access for development
+- Authentication will be added after full system approval
 
----
+## 🛠️ Tech Stack
 
-## 🛠️ Tools & Technologies
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Mobile**: React Native, TypeScript
+- **Backend**: Node.js, Express, TypeScript
+- **Styling**: Tailwind CSS, CSS Modules
+- **State**: React Context, Zustand
+- **Real-time**: Socket.io
+- **Database**: PostgreSQL (or MongoDB)
 
-- **Design:** Figma
-- **Icons:** Lucide / Feather
-- **Maps:** Google Maps / Mapbox
-- **Charts:** Chart.js / Recharts
-- **Animations:** Framer Motion
+## 📦 Build
 
----
-
-## 📈 Future Enhancements
-
-- Multi-language support
-- Loyalty and referral system
-- Subscription plans for providers
-- AI-based service recommendations
-- Advanced analytics and reporting
-
----
+```bash
+npm run build
+```
 
 ## 📄 License
 
-This project is proprietary and intended for private development unless stated otherwise.
-
----
-
-## ✨ Vision
-
-Zoo Beauty Palace aims to become a **luxury beauty concierge platform**, seamlessly connecting clients with top-tier beauty professionals anytime, anywhere.
+Proprietary - Zoo Beauty Palace

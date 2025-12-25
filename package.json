@@ -1,0 +1,30 @@
+{
+  "name": "zoo-beauty-palace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-scale beauty service platform with client app, provider dashboard, beautician app, and admin dashboard",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:provider\" \"npm run dev:admin\" \"npm run dev:backend\"",
+    "dev:client": "npm run dev --workspace=apps/client",
+    "dev:provider": "npm run dev --workspace=apps/provider-dashboard",
+    "dev:admin": "npm run dev --workspace=apps/admin-dashboard",
+    "dev:beautician": "npm run start --workspace=apps/beautician-mobile",
+    "dev:backend": "npm run dev --workspace=backend",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces",
+    "type-check": "npm run type-check --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
