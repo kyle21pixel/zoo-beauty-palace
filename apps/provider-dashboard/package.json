@@ -10,22 +10,24 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@zoo/types": "*",
+    "@zoo/ui": "*",
+    "clsx": "^2.1.0",
+    "date-fns": "^3.6.0",
     "next": "^14.1.0",
     "react": "^18.2.0",
+    "react-big-calendar": "^1.19.4",
     "react-dom": "^18.2.0",
-    "@zoo/ui": "*",
-    "@zoo/types": "*",
-    "clsx": "^2.1.0",
-    "date-fns": "^3.0.0",
-    "zustand": "^4.4.7",
-    "recharts": "^2.10.0"
+    "react-hot-toast": "^2.6.0",
+    "recharts": "^2.15.4",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "typescript": "^5.3.3",
     "eslint": "^8.56.0",
-    "eslint-config-next": "^14.1.0"
+    "eslint-config-next": "^14.1.0",
+    "typescript": "^5.3.3"
   }
 }

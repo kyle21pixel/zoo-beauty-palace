@@ -1,61 +1,136 @@
 'use client';
 
 import { Button, Card } from '@zoo/ui';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [activeMenu, setActiveMenu] = useState('dashboard');
+export default function DashboardLayout({ children, activeTab = 'overview', onTabChange }: DashboardLayoutProps) {
+  const [darkMode, setDarkMode] = useState(false);
+  const [activeMenu, setActiveMenu] = useState(activeTab);
+
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('providerDarkMode');
+    if (savedDarkMode) {
+      setDarkMode(savedDarkMode === 'true');
+    }
+  }, []);
+
+  useEffect(() => {
+    setActiveMenu(activeTab);
+  }, [activeTab]);
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('providerDarkMode', String(newDarkMode));
+  };
+
+  const handleMenuClick = (itemId: string) => {
+    setActiveMenu(itemId);
+    if (onTabChange) {
+      onTabChange(itemId);
+    }
+  };
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'services', label: 'Services', icon: '✨' },
+    { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'bookings', label: 'Bookings', icon: '📅' },
+    { id: 'services', label: 'Services', icon: '✨' },
     { id: 'staff', label: 'Staff', icon: '👥' },
     { id: 'customers', label: 'Customers', icon: '👤' },
     { id: 'reviews', label: 'Reviews', icon: '⭐' },
     { id: 'earnings', label: 'Earnings', icon: '💰' },
+    { id: 'calendar', label: 'Calendar', icon: '📆' },
+    { id: 'reports', label: 'Reports', icon: '📈' },
     { id: 'settings', label: 'Settings', icon: '⚙️' },
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ 
+      display: 'flex', 
+      minHeight: '100vh',
+      background: darkMode ? '#0A0A0A' : '#FAFAFA',
+      transition: 'background 0.3s ease',
+    }}>
       {/* Sidebar */}
       <aside style={{
         width: '260px',
-        background: 'linear-gradient(180deg, #774EAF 0%, #5C3B8B 100%)',
+        background: darkMode 
+          ? 'linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%)'
+          : 'linear-gradient(180deg, #774EAF 0%, #5C3B8B 100%)',
         color: 'white',
         padding: '2rem 1rem',
         position: 'fixed',
         height: '100vh',
         overflowY: 'auto',
+        borderRight: darkMode ? '1px solid rgba(255,255,255,0.1)' : 'none',
       }}>
         <div style={{
           marginBottom: '2rem',
           paddingBottom: '1.5rem',
           borderBottom: '1px solid rgba(255,255,255,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}>
-          <h1 style={{
-            fontSize: '1.5rem',
-            fontFamily: 'var(--font-heading)',
-            marginBottom: '0.5rem',
-          }}>
-            🦓 Zoo Beauty
-          </h1>
-          <p style={{ fontSize: '0.875rem', opacity: 0.8 }}>Provider Dashboard</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Image
+              src="/logo.png"
+              alt="Zoo Beauty"
+              width={45}
+              height={45}
+              style={{
+                borderRadius: '50%',
+                border: '2px solid #FF4275',
+              }}
+            />
+            <div>
+              <h1 style={{
+                fontSize: '1.25rem',
+                fontFamily: 'var(--font-heading)',
+                marginBottom: '0.25rem',
+              }}>
+                Zoo Beauty
+              </h1>
+              <p style={{ fontSize: '0.75rem', opacity: 0.8 }}>Provider Hub</p>
+            </div>
+          </div>
+          <button
+            onClick={toggleDarkMode}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              border: 'none',
+              borderRadius: '0.5rem',
+              padding: '0.5rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span style={{ fontSize: '1.25rem' }}>
+              {darkMode ? '☀️' : '🌙'}
+            </span>
+          </button>
         </div>
 
         {/* Provider Info */}
         <Card
           variant="glass"
-          padding="4"
+          padding={4}
           style={{
             marginBottom: '1.5rem',
-            background: 'rgba(255,255,255,0.1)',
+            background: darkMode 
+              ? 'rgba(255,255,255,0.05)'
+              : 'rgba(255,255,255,0.1)',
             backdropFilter: 'blur(8px)',
+            border: darkMode ? '1px solid rgba(255,255,255,0.1)' : 'none',
           }}
         >
           <div style={{
@@ -84,13 +159,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {menuItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveMenu(item.id)}
+              onClick={() => handleMenuClick(item.id)}
               style={{
                 width: '100%',
                 padding: '0.875rem 1rem',
                 marginBottom: '0.5rem',
                 background: activeMenu === item.id
-                  ? 'rgba(255,255,255,0.2)'
+                  ? darkMode 
+                    ? 'rgba(255, 66, 117, 0.2)'
+                    : 'rgba(255,255,255,0.2)'
                   : 'transparent',
                 border: 'none',
                 color: 'white',
@@ -106,7 +183,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               }}
               onMouseEnter={(e) => {
                 if (activeMenu !== item.id) {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                  e.currentTarget.style.background = darkMode 
+                    ? 'rgba(255,255,255,0.05)'
+                    : 'rgba(255,255,255,0.1)';
                 }
               }}
               onMouseLeave={(e) => {
@@ -128,6 +207,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         flex: 1,
         padding: '2rem',
         minHeight: '100vh',
+        background: darkMode ? '#0A0A0A' : '#FAFAFA',
       }}>
         <div style={{ maxWidth: '1400px' }}>
           {children}
