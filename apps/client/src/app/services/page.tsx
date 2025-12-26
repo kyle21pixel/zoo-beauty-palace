@@ -1,117 +1,67 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Card, Input } from '@zoo/ui';
 import { useRouter } from 'next/navigation';
 import type { Service, ServiceCategory } from '@zoo/types';
-
-// Mock data
-const mockServices: Service[] = [
-  {
-    id: '1',
-    name: 'Luxury Hair Treatment',
-    description: 'Deep conditioning treatment with premium products for silky smooth hair',
-    category: 'hair',
-    price: 150,
-    duration: 90,
-    providerId: 'p1',
-    images: ['🎨'],
-    tags: ['luxury', 'conditioning', 'treatment'],
-    available: true,
-    rating: 4.8,
-    reviewCount: 156,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '2',
-    name: 'Classic Manicure & Pedicure',
-    description: 'Complete nail care with polish, shaping, and cuticle treatment',
-    category: 'nails',
-    price: 75,
-    duration: 60,
-    providerId: 'p2',
-    images: ['💅'],
-    tags: ['manicure', 'pedicure', 'classic'],
-    available: true,
-    rating: 4.9,
-    reviewCount: 203,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'Bridal Makeup Package',
-    description: 'Complete bridal makeup with trial session and hair styling',
-    category: 'makeup',
-    price: 250,
-    duration: 120,
-    providerId: 'p3',
-    images: ['💄'],
-    tags: ['bridal', 'makeup', 'special'],
-    available: true,
-    rating: 5.0,
-    reviewCount: 89,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '4',
-    name: 'Hydrating Facial',
-    description: 'Deep cleansing and hydrating facial for glowing skin',
-    category: 'skincare',
-    price: 120,
-    duration: 75,
-    providerId: 'p1',
-    images: ['✨'],
-    tags: ['facial', 'hydrating', 'skincare'],
-    available: true,
-    rating: 4.7,
-    reviewCount: 145,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '5',
-    name: 'Swedish Massage',
-    description: 'Relaxing full-body massage to relieve stress and tension',
-    category: 'massage',
-    price: 100,
-    duration: 60,
-    providerId: 'p4',
-    images: ['💆‍♀️'],
-    tags: ['massage', 'relaxation', 'wellness'],
-    available: true,
-    rating: 4.9,
-    reviewCount: 178,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '6',
-    name: 'Spa Day Package',
-    description: 'Full day spa experience with multiple treatments',
-    category: 'spa',
-    price: 350,
-    duration: 240,
-    providerId: 'p5',
-    images: ['🧖‍♀️'],
-    tags: ['spa', 'package', 'luxury'],
-    available: true,
-    rating: 5.0,
-    reviewCount: 92,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+import { api } from '@/lib/api';
 
 export default function ServicesPage() {
   const router = useRouter();
+  const [services, setServices] = useState<any[]>([]);
+  const [filteredServices, setFilteredServices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | 'all'>('all');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
 
-  const categories: { value: ServiceCategory | 'all'; label: string; icon: string }[] = [
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  useEffect(() => {
+    filterServices();
+  }, [services, selectedCategory, searchQuery, priceRange]);
+
+  const fetchServices = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.getServices();
+      setServices(response.data || []);
+      setFilteredServices(response.data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load services');
+      console.error('Error fetching services:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterServices = () => {
+    let filtered = [...services];
+
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(s => s.category.toLowerCase() === selectedCategory.toLowerCase());
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter(s => 
+        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (s.description && s.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+
+    // Filter by price range
+    filtered = filtered.filter(s => s.price >= priceRange[0] && s.price <= priceRange[1]);
+
+    setFilteredServices(filtered);
+  };
+
+  const categories: { value: string; label: string; icon: string }[] = [
     { value: 'all', label: 'All', icon: '🎯' },
     { value: 'hair', label: 'Hair', icon: '💇‍♀️' },
     { value: 'nails', label: 'Nails', icon: '💅' },
@@ -121,13 +71,22 @@ export default function ServicesPage() {
     { value: 'spa', label: 'Spa', icon: '🧖‍♀️' },
   ];
 
-  const filteredServices = mockServices.filter(service => {
-    const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory;
-    const matchesPrice = service.price >= priceRange[0] && service.price <= priceRange[1];
-    return matchesSearch && matchesCategory && matchesPrice;
-  });
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p>Loading services...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem' }}>
+        <p style={{ color: 'red' }}>Error: {error}</p>
+        <Button onClick={fetchServices}>Retry</Button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '2rem' }}>
@@ -285,7 +244,12 @@ export default function ServicesPage() {
                 background: 'linear-gradient(135deg, #FFF5F7 0%, #F5F3F7 100%)',
                 borderRadius: '1rem',
               }}>
-                {service.images[0]}
+                {service.category === 'hair' ? '💇‍♀️' :
+                 service.category === 'nails' ? '💅' :
+                 service.category === 'makeup' ? '💄' :
+                 service.category === 'skincare' ? '✨' :
+                 service.category === 'massage' ? '💆‍♀️' :
+                 service.category === 'spa' ? '🧖‍♀️' : '💎'}
               </div>
               
               <div style={{
@@ -316,7 +280,7 @@ export default function ServicesPage() {
                 marginBottom: '1rem',
                 lineHeight: 1.5,
               }}>
-                {service.description}
+                {service.description || 'Premium beauty service'}
               </p>
 
               <div style={{
@@ -348,9 +312,9 @@ export default function ServicesPage() {
                   gap: '0.25rem',
                 }}>
                   <span>⭐</span>
-                  <span style={{ fontWeight: 600 }}>{service.rating}</span>
+                  <span style={{ fontWeight: 600 }}>{service.rating || 5.0}</span>
                   <span style={{ color: '#A3A3A3', fontSize: '0.875rem' }}>
-                    ({service.reviewCount})
+                    ({service.review_count || 0})
                   </span>
                 </div>
               </div>

@@ -4,6 +4,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { Card, Button } from '@zoo/ui';
 import { useState, useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
+import { api } from '@/lib/api';
 import {
   AreaChart,
   Area,
@@ -171,48 +172,109 @@ export default function ProviderDashboard() {
     localStorage.setItem('providerDarkMode', String(darkMode));
   }, [darkMode]);
 
-  const initializeData = () => {
-    // Initialize bookings
-    setBookingsData([
-      { id: '1', customer: 'Sarah Johnson', service: 'Luxury Hair Treatment', time: '10:00 AM', date: '2025-12-25', status: 'confirmed', price: 150, email: 'sarah.j@email.com', phone: '+1 234-567-8900' },
-      { id: '2', customer: 'Emma Davis', service: 'Bridal Makeup', time: '11:30 AM', date: '2025-12-25', status: 'pending', price: 250, email: 'emma.d@email.com', phone: '+1 234-567-8901' },
-      { id: '3', customer: 'Olivia Wilson', service: 'Classic Manicure', time: '2:00 PM', date: '2025-12-25', status: 'confirmed', price: 75, email: 'olivia.w@email.com', phone: '+1 234-567-8902' },
-      { id: '4', customer: 'Ava Martinez', service: 'Hydrating Facial', time: '3:30 PM', date: '2025-12-25', status: 'in-progress', price: 120, email: 'ava.m@email.com', phone: '+1 234-567-8903' },
-      { id: '5', customer: 'Isabella Brown', service: 'Hair Coloring', time: '4:00 PM', date: '2025-12-26', status: 'pending', price: 180, email: 'isabella.b@email.com', phone: '+1 234-567-8904' },
-    ]);
+  const initializeData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch real data from API
+      const [servicesRes, bookingsRes, usersRes, reviewsRes] = await Promise.all([
+        api.getServices(),
+        api.getBookings(),
+        api.getUsers(),
+        api.getReviews(),
+      ]);
 
-    // Initialize services
-    setServicesData([
-      { id: '1', name: 'Luxury Hair Treatment', category: 'Hair', price: 150, duration: '90 min', active: true, bookings: 45, description: 'Premium hair treatment service' },
-      { id: '2', name: 'Bridal Makeup', category: 'Makeup', price: 250, duration: '120 min', active: true, bookings: 32, description: 'Complete bridal makeup package' },
-      { id: '3', name: 'Classic Manicure', category: 'Nails', price: 75, duration: '60 min', active: true, bookings: 58, description: 'Professional manicure service' },
-      { id: '4', name: 'Hydrating Facial', category: 'Facial', price: 120, duration: '75 min', active: true, bookings: 41, description: 'Deep hydrating facial treatment' },
-      { id: '5', name: 'Hair Coloring', category: 'Hair', price: 180, duration: '120 min', active: false, bookings: 28, description: 'Professional hair coloring' },
-    ]);
+      // Set services data
+      const services = servicesRes.data.map((s: any) => ({
+        id: s.id,
+        name: s.name,
+        category: s.category,
+        price: s.price,
+        duration: `${s.duration} min`,
+        active: s.active || true,
+        bookings: 0, // This would come from a separate aggregation
+        description: s.description || '',
+      }));
+      setServicesData(services);
 
-    // Initialize staff
-    setStaffData([
-      { id: '1', name: 'Jessica Smith', role: 'Senior Stylist', specialization: 'Hair Specialist', avatar: '👩‍🦰', rating: 4.9, bookings: 156, revenue: 18500 },
-      { id: '2', name: 'Michael Johnson', role: 'Makeup Artist', specialization: 'Bridal Makeup', avatar: '👨‍🎨', rating: 4.8, bookings: 128, revenue: 16200 },
-      { id: '3', name: 'Emily Davis', role: 'Nail Technician', specialization: 'Nail Art', avatar: '👩‍💼', rating: 4.7, bookings: 142, revenue: 12800 },
-      { id: '4', name: 'David Wilson', role: 'Beautician', specialization: 'Facial Treatments', avatar: '👨‍⚕️', rating: 4.9, bookings: 134, revenue: 15400 },
-    ]);
+      // Set bookings data - transform from DB format
+      const bookings = bookingsRes.data.map((b: any) => ({
+        id: b.id,
+        customer: 'Customer', // Would need to join with user data
+        customerId: b.customer_id,
+        service: 'Service', // Would need to join with service data
+        serviceId: b.service_id,
+        time: new Date(b.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        date: new Date(b.scheduled_at).toISOString().split('T')[0],
+        status: b.status,
+        price: b.total_price,
+        email: '',
+        phone: '',
+      }));
+      setBookingsData(bookings);
 
-    // Initialize customers
-    setCustomersData([
-      { id: '1', name: 'Sarah Johnson', email: 'sarah.j@email.com', phone: '+1 234-567-8900', totalBookings: 12, totalSpent: 1850, lastVisit: '2025-12-20', status: 'VIP' },
-      { id: '2', name: 'Emma Davis', email: 'emma.d@email.com', phone: '+1 234-567-8901', totalBookings: 8, totalSpent: 1200, lastVisit: '2025-12-18', status: 'Regular' },
-      { id: '3', name: 'Olivia Wilson', email: 'olivia.w@email.com', phone: '+1 234-567-8902', totalBookings: 15, totalSpent: 2450, lastVisit: '2025-12-22', status: 'VIP' },
-      { id: '4', name: 'Ava Martinez', email: 'ava.m@email.com', phone: '+1 234-567-8903', totalBookings: 5, totalSpent: 680, lastVisit: '2025-12-15', status: 'New' },
-    ]);
+      // Set staff data (beauticians)
+      const beauticians = usersRes.data
+        .filter((u: any) => u.role === 'beautician')
+        .map((u: any) => ({
+          id: u.id,
+          name: u.name,
+          role: 'Beautician',
+          specialization: u.specialty || 'Beauty Services',
+          avatar: '👤',
+          rating: 4.8,
+          bookings: 0,
+          revenue: 0,
+        }));
+      setStaffData(beauticians);
 
-    // Initialize reviews
-    setReviewsData([
-      { id: '1', customer: 'Sarah Johnson', rating: 5, service: 'Hair Treatment', comment: 'Absolutely amazing service! Jessica did a fantastic job.', date: '2025-12-20', avatar: '👩', response: '' },
-      { id: '2', customer: 'Emma Davis', rating: 5, service: 'Bridal Makeup', comment: 'Made my special day perfect! Highly recommended.', date: '2025-12-18', avatar: '👰', response: '' },
-      { id: '3', customer: 'Olivia Wilson', rating: 4, service: 'Manicure', comment: 'Great service, but had to wait a bit longer than expected.', date: '2025-12-17', avatar: '👩‍💼', response: '' },
-      { id: '4', customer: 'Ava Martinez', rating: 5, service: 'Facial', comment: 'My skin feels incredible! Will definitely come back.', date: '2025-12-15', avatar: '👩‍🦱', response: 'Thank you so much! We look forward to seeing you again!' },
-    ]);
+      // Set customers data
+      const customers = usersRes.data
+        .filter((u: any) => u.role === 'customer')
+        .map((u: any) => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          phone: u.phone || 'N/A',
+          totalBookings: 0,
+          totalSpent: 0,
+          lastVisit: new Date().toISOString().split('T')[0],
+          status: 'Regular',
+        }));
+      setCustomersData(customers);
+
+      // Set reviews data
+      const reviews = reviewsRes.data.map((r: any) => ({
+        id: r.id,
+        customer: 'Customer',
+        customerId: r.customer_id,
+        rating: r.rating,
+        service: 'Service',
+        serviceId: r.service_id,
+        comment: r.comment,
+        date: new Date(r.created_at).toISOString().split('T')[0],
+        avatar: '👤',
+        response: r.response || '',
+      }));
+      setReviewsData(reviews);
+
+      toast.success('Data loaded from database!', { icon: '✅' });
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast.error('Failed to load data from database. Please ensure backend is running.', {
+        duration: 5000,
+      });
+      
+      // Fallback to minimal mock data only on error
+      setServicesData([
+        { id: '1', name: 'Sample Service', category: 'Hair', price: 100, duration: '60 min', active: true, bookings: 0, description: 'Sample service - Connect to database to see real data' },
+      ]);
+      setBookingsData([]);
+      setStaffData([]);
+      setCustomersData([]);
+      setReviewsData([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const initializeNotifications = () => {

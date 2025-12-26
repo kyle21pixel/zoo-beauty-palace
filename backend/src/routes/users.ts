@@ -19,6 +19,7 @@ router.get('/', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch users',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });

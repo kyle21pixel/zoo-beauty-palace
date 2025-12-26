@@ -7,24 +7,19 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const { status, customerId, beauticianId, providerId } = req.query;
-    
     const bookings = await bookingRepository.findAll({
       status: status as string,
       customerId: customerId as string,
       beauticianId: beauticianId as string,
       providerId: providerId as string,
     });
-    
-    res.json({
-      success: true,
-      data: bookings,
-      total: bookings.length,
-    });
+    res.json({ success: true, data: bookings, total: bookings.length });
   } catch (error) {
     console.error('Error fetching bookings:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch bookings',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -172,21 +167,6 @@ router.delete('/:id', async (req, res) => {
       error: 'Failed to delete booking',
     });
   }
-});
-
-export default router;
-      error: 'Booking not found',
-    });
-  }
-  
-  mockBookings[index].status = 'cancelled';
-  mockBookings[index].updatedAt = new Date();
-  
-  res.json({
-    success: true,
-    data: mockBookings[index],
-    message: 'Booking cancelled successfully',
-  });
 });
 
 export default router;

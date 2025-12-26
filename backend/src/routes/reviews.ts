@@ -7,7 +7,6 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const { customerId, serviceId, beauticianId, providerId, minRating, maxRating } = req.query;
-    
     const reviews = await reviewRepository.findAll({
       customerId: customerId as string,
       serviceId: serviceId as string,
@@ -16,17 +15,13 @@ router.get('/', async (req, res) => {
       minRating: minRating ? Number(minRating) : undefined,
       maxRating: maxRating ? Number(maxRating) : undefined,
     });
-    
-    res.json({
-      success: true,
-      data: reviews,
-      total: reviews.length,
-    });
+    res.json({ success: true, data: reviews, total: reviews.length });
   } catch (error) {
     console.error('Error fetching reviews:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch reviews',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -168,52 +163,6 @@ router.delete('/:id', async (req, res) => {
       error: 'Failed to delete review',
     });
   }
-});
-
-export default router;
-
-// Get all reviews
-router.get('/', (req, res) => {
-  const { serviceId, beauticianId, providerId } = req.query;
-  
-  let filtered = [...mockReviews];
-  
-  if (serviceId) {
-    filtered = filtered.filter(r => r.serviceId === serviceId);
-  }
-  
-  if (beauticianId) {
-    filtered = filtered.filter(r => r.beauticianId === beauticianId);
-  }
-  
-  if (providerId) {
-    filtered = filtered.filter(r => r.providerId === providerId);
-  }
-  
-  res.json({
-    success: true,
-    data: filtered,
-    total: filtered.length,
-  });
-});
-
-// Create review
-router.post('/', (req, res) => {
-  const newReview = {
-    id: `r${mockReviews.length + 1}`,
-    ...req.body,
-    helpful: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  
-  mockReviews.push(newReview);
-  
-  res.status(201).json({
-    success: true,
-    data: newReview,
-    message: 'Review created successfully',
-  });
 });
 
 export default router;

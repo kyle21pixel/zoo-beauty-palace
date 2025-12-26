@@ -7,24 +7,19 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const { category, minPrice, maxPrice, search } = req.query;
-    
     const services = await serviceRepository.findAll({
       category: category as string,
       minPrice: minPrice ? Number(minPrice) : undefined,
       maxPrice: maxPrice ? Number(maxPrice) : undefined,
       search: search as string,
     });
-    
-    res.json({
-      success: true,
-      data: services,
-      total: services.length,
-    });
+    res.json({ success: true, data: services, total: services.length });
   } catch (error) {
     console.error('Error fetching services:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch services',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -122,25 +117,6 @@ router.delete('/:id', async (req, res) => {
       error: 'Failed to delete service',
     });
   }
-});
-
-export default router;
-router.delete('/:id', (req, res) => {
-  const index = mockServices.findIndex(s => s.id === req.params.id);
-  
-  if (index === -1) {
-    return res.status(404).json({
-      success: false,
-      error: 'Service not found',
-    });
-  }
-  
-  mockServices.splice(index, 1);
-  
-  res.json({
-    success: true,
-    message: 'Service deleted successfully',
-  });
 });
 
 export default router;
