@@ -3,6 +3,20 @@
 import { Button, Card } from '@zoo/ui';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import {
+  LayoutDashboard,
+  Calendar,
+  Sparkles,
+  Users,
+  UserCircle,
+  Star,
+  DollarSign,
+  CalendarDays,
+  BarChart3,
+  Settings,
+  Sun,
+  Moon,
+} from 'lucide-react';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -39,16 +53,16 @@ export default function DashboardLayout({ children, activeTab = 'overview', onTa
   };
 
   const menuItems = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'bookings', label: 'Bookings', icon: '📅' },
-    { id: 'services', label: 'Services', icon: '✨' },
-    { id: 'staff', label: 'Staff', icon: '👥' },
-    { id: 'customers', label: 'Customers', icon: '👤' },
-    { id: 'reviews', label: 'Reviews', icon: '⭐' },
-    { id: 'earnings', label: 'Earnings', icon: '💰' },
-    { id: 'calendar', label: 'Calendar', icon: '📆' },
-    { id: 'reports', label: 'Reports', icon: '📈' },
-    { id: 'settings', label: 'Settings', icon: '⚙️' },
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'bookings', label: 'Bookings', icon: Calendar },
+    { id: 'services', label: 'Services', icon: Sparkles },
+    { id: 'staff', label: 'Staff', icon: Users },
+    { id: 'customers', label: 'Customers', icon: UserCircle },
+    { id: 'reviews', label: 'Reviews', icon: Star },
+    { id: 'earnings', label: 'Earnings', icon: DollarSign },
+    { id: 'calendar', label: 'Calendar', icon: CalendarDays },
+    { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -112,11 +126,18 @@ export default function DashboardLayout({ children, activeTab = 'overview', onTa
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+              e.currentTarget.style.transform = 'scale(1.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+              e.currentTarget.style.transform = 'scale(1)';
             }}
           >
-            <span style={{ fontSize: '1.25rem' }}>
-              {darkMode ? '☀️' : '🌙'}
-            </span>
+            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
         </div>
 
@@ -156,48 +177,53 @@ export default function DashboardLayout({ children, activeTab = 'overview', onTa
 
         {/* Menu Items */}
         <nav>
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleMenuClick(item.id)}
-              style={{
-                width: '100%',
-                padding: '0.875rem 1rem',
-                marginBottom: '0.5rem',
-                background: activeMenu === item.id
-                  ? darkMode 
-                    ? 'rgba(255, 66, 117, 0.2)'
-                    : 'rgba(255,255,255,0.2)'
-                  : 'transparent',
-                border: 'none',
-                color: 'white',
-                borderRadius: '0.75rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                fontSize: '0.9375rem',
-                fontWeight: activeMenu === item.id ? 600 : 400,
-                transition: 'all 0.2s ease',
-                textAlign: 'left',
-              }}
-              onMouseEnter={(e) => {
-                if (activeMenu !== item.id) {
-                  e.currentTarget.style.background = darkMode 
-                    ? 'rgba(255,255,255,0.05)'
-                    : 'rgba(255,255,255,0.1)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeMenu !== item.id) {
-                  e.currentTarget.style.background = 'transparent';
-                }
-              }}
-            >
-              <span style={{ fontSize: '1.25rem' }}>{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
+          {menuItems.map((item) => {
+            const IconComponent = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleMenuClick(item.id)}
+                style={{
+                  width: '100%',
+                  padding: '0.875rem 1rem',
+                  marginBottom: '0.5rem',
+                  background: activeMenu === item.id
+                    ? darkMode 
+                      ? 'rgba(255, 66, 117, 0.2)'
+                      : 'rgba(255,255,255,0.2)'
+                    : 'transparent',
+                  border: 'none',
+                  color: 'white',
+                  borderRadius: '0.75rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  fontSize: '0.9375rem',
+                  fontWeight: activeMenu === item.id ? 600 : 400,
+                  transition: 'all 0.2s ease',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeMenu !== item.id) {
+                    e.currentTarget.style.background = darkMode 
+                      ? 'rgba(255,255,255,0.05)'
+                      : 'rgba(255,255,255,0.1)';
+                    e.currentTarget.style.transform = 'translateX(4px)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeMenu !== item.id) {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.transform = 'translateX(0)';
+                  }
+                }}
+              >
+                <IconComponent size={20} style={{ strokeWidth: 2 }} />
+                {item.label}
+              </button>
+            );
+          })}
         </nav>
       </aside>
 

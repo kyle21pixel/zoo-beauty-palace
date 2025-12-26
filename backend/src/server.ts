@@ -3,6 +3,7 @@ import cors from 'cors';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
 import dotenv from 'dotenv';
+import { pool } from './db/connection';
 
 // Import routes
 import servicesRouter from './routes/services';
@@ -35,12 +36,25 @@ app.use((req, res, next) => {
 });
 
 // Health check
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-  });
+app.get('/health', async (req, res) => {
+  try {
+    // Test database connection
+    await pool.query('SELECT NOW()');
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: 'connected',
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: 'disconnected',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
 });
 
 // API Routes
@@ -87,16 +101,27 @@ app.use((req, res) => {
 });
 
 // Start server
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, async () => {
   console.log(`
   🦓 Zoo Beauty Palace API Server
   ================================
   Server running on: http://localhost:${PORT}
   Health check: http://localhost:${PORT}/health
   Environment: ${process.env.NODE_ENV || 'development'}
+  Database: ${process.env.DB_NAME}@${process.env.DB_HOST}:${process.env.DB_PORT}
   
   ⚠️  NO AUTHENTICATION - Development Mode
   `);
+  
+  // Test database connection on startup
+  try {
+    const result = await pool.query('SELECT NOW()');
+    console.log('  ✅ Database connected successfully');
+  } catch (error) {
+    console.error('  ❌ Database connection failed:', error);
+    console.error('\n  💡 Tip: Run "npm run db:init" to initialize the database');
+    console.error('          Then run "npm run db:seed" to add sample data\n');
+  }
 });
 
 export { io };

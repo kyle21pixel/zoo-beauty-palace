@@ -1,82 +1,121 @@
 import { Router } from 'express';
-import { mockUsers } from '../data/mockData';
+import { userRepository } from '../repositories/UserRepository';
 
 const router = Router();
 
 // Get all users
-router.get('/', (req, res) => {
-  const { role } = req.query;
-  
-  let filtered = [...mockUsers];
-  
-  if (role) {
-    filtered = filtered.filter(u => u.role === role);
+router.get('/', async (req, res) => {
+  try {
+    const { role } = req.query;
+    const users = await userRepository.findAll(role as string);
+    
+    res.json({
+      success: true,
+      data: users,
+      total: users.length,
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch users',
+    });
   }
-  
-  res.json({
-    success: true,
-    data: filtered,
-    total: filtered.length,
-  });
 });
 
 // Get user by ID
-router.get('/:id', (req, res) => {
-  const user = mockUsers.find(u => u.id === req.params.id);
-  
-  if (!user) {
-    return res.status(404).json({
+router.get('/:id', async (req, res) => {
+  try {
+    const user = await userRepository.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({
       success: false,
-      error: 'User not found',
+      error: 'Failed to fetch user',
     });
   }
-  
-  res.json({
-    success: true,
-    data: user,
-  });
 });
 
 // Create user
-router.post('/', (req, res) => {
-  const newUser = {
-    id: `u${mockUsers.length + 1}`,
-    ...req.body,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  
-  mockUsers.push(newUser);
-  
-  res.status(201).json({
-    success: true,
-    data: newUser,
-    message: 'User created successfully',
-  });
+router.post('/', async (req, res) => {
+  try {
+    const newUser = await userRepository.create(req.body);
+    
+    res.status(201).json({
+      success: true,
+      data: newUser,
+      message: 'User created successfully',
+    });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create user',
+    });
+  }
 });
 
 // Update user
-router.put('/:id', (req, res) => {
-  const index = mockUsers.findIndex(u => u.id === req.params.id);
-  
-  if (index === -1) {
-    return res.status(404).json({
+router.put('/:id', async (req, res) => {
+  try {
+    const updatedUser = await userRepository.update(req.params.id, req.body);
+    
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: updatedUser,
+      message: 'User updated successfully',
+    });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({
       success: false,
-      error: 'User not found',
+      error: 'Failed to update user',
     });
   }
-  
-  mockUsers[index] = {
-    ...mockUsers[index],
-    ...req.body,
-    updatedAt: new Date(),
-  };
-  
-  res.json({
-    success: true,
-    data: mockUsers[index],
-    message: 'User updated successfully',
-  });
+});
+
+// Delete user
+router.delete('/:id', async (req, res) => {
+  try {
+    const deleted = await userRepository.delete(req.params.id);
+    
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'User deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete user',
+    });
+  }
 });
 
 export default router;

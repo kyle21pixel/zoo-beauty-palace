@@ -1,103 +1,130 @@
 import { Router } from 'express';
-import { mockServices } from '../data/mockData';
+import { serviceRepository } from '../repositories/ServiceRepository';
 
 const router = Router();
 
 // Get all services
-router.get('/', (req, res) => {
-  const { category, minPrice, maxPrice, search } = req.query;
-  
-  let filtered = [...mockServices];
-  
-  if (category && category !== 'all') {
-    filtered = filtered.filter(s => s.category === category);
+router.get('/', async (req, res) => {
+  try {
+    const { category, minPrice, maxPrice, search } = req.query;
+    
+    const services = await serviceRepository.findAll({
+      category: category as string,
+      minPrice: minPrice ? Number(minPrice) : undefined,
+      maxPrice: maxPrice ? Number(maxPrice) : undefined,
+      search: search as string,
+    });
+    
+    res.json({
+      success: true,
+      data: services,
+      total: services.length,
+    });
+  } catch (error) {
+    console.error('Error fetching services:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch services',
+    });
   }
-  
-  if (minPrice) {
-    filtered = filtered.filter(s => s.price >= Number(minPrice));
-  }
-  
-  if (maxPrice) {
-    filtered = filtered.filter(s => s.price <= Number(maxPrice));
-  }
-  
-  if (search) {
-    const searchLower = String(search).toLowerCase();
-    filtered = filtered.filter(s => 
-      s.name.toLowerCase().includes(searchLower) ||
-      s.description.toLowerCase().includes(searchLower)
-    );
-  }
-  
-  res.json({
-    success: true,
-    data: filtered,
-    total: filtered.length,
-  });
 });
 
 // Get service by ID
-router.get('/:id', (req, res) => {
-  const service = mockServices.find(s => s.id === req.params.id);
-  
-  if (!service) {
-    return res.status(404).json({
+router.get('/:id', async (req, res) => {
+  try {
+    const service = await serviceRepository.findById(req.params.id);
+    
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        error: 'Service not found',
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: service,
+    });
+  } catch (error) {
+    console.error('Error fetching service:', error);
+    res.status(500).json({
       success: false,
-      error: 'Service not found',
+      error: 'Failed to fetch service',
     });
   }
-  
-  res.json({
-    success: true,
-    data: service,
-  });
 });
 
 // Create service
-router.post('/', (req, res) => {
-  const newService = {
-    id: `s${mockServices.length + 1}`,
-    ...req.body,
-    rating: 0,
-    reviewCount: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  
-  mockServices.push(newService);
-  
-  res.status(201).json({
-    success: true,
-    data: newService,
-    message: 'Service created successfully',
-  });
+router.post('/', async (req, res) => {
+  try {
+    const newService = await serviceRepository.create(req.body);
+    
+    res.status(201).json({
+      success: true,
+      data: newService,
+      message: 'Service created successfully',
+    });
+  } catch (error) {
+    console.error('Error creating service:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create service',
+    });
+  }
 });
 
 // Update service
-router.put('/:id', (req, res) => {
-  const index = mockServices.findIndex(s => s.id === req.params.id);
-  
-  if (index === -1) {
-    return res.status(404).json({
+router.put('/:id', async (req, res) => {
+  try {
+    const updatedService = await serviceRepository.update(req.params.id, req.body);
+    
+    if (!updatedService) {
+      return res.status(404).json({
+        success: false,
+        error: 'Service not found',
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: updatedService,
+      message: 'Service updated successfully',
+    });
+  } catch (error) {
+    console.error('Error updating service:', error);
+    res.status(500).json({
       success: false,
-      error: 'Service not found',
+      error: 'Failed to update service',
     });
   }
-  
-  mockServices[index] = {
-    ...mockServices[index],
-    ...req.body,
-    updatedAt: new Date(),
-  };
-  
-  res.json({
-    success: true,
-    data: mockServices[index],
-    message: 'Service updated successfully',
-  });
 });
 
 // Delete service
+router.delete('/:id', async (req, res) => {
+  try {
+    const deleted = await serviceRepository.delete(req.params.id);
+    
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: 'Service not found',
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Service deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting service:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete service',
+    });
+  }
+});
+
+export default router;
 router.delete('/:id', (req, res) => {
   const index = mockServices.findIndex(s => s.id === req.params.id);
   

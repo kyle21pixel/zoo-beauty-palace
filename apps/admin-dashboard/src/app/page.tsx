@@ -123,6 +123,16 @@ export default function AdminDashboard() {
   
   // Reviews
   const [pendingReviews, setPendingReviews] = useState<any[]>([]);
+  
+  // Additional modal states
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [selectedServiceEdit, setSelectedServiceEdit] = useState<any>(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedBookingEdit, setSelectedBookingEdit] = useState<any>(null);
+  const [showPromoModal, setShowPromoModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load dark mode preference
   useEffect(() => {
@@ -337,6 +347,138 @@ export default function AdminDashboard() {
   const resolveTicket = (id: string) => {
     setTickets(prev => prev.map(t => t.id === id ? { ...t, status: 'resolved' } : t));
     toast.success('Ticket resolved!');
+  };
+  
+  const handleUserAction = (userId: string, action: 'approve' | 'suspend' | 'delete' | 'edit') => {
+    switch(action) {
+      case 'approve':
+        toast.success('User approved successfully!', { icon: '✅' });
+        break;
+      case 'suspend':
+        toast.success('User suspended', { icon: '⛔' });
+        break;
+      case 'delete':
+        if (confirm('Are you sure you want to delete this user?')) {
+          toast.success('User deleted', { icon: '🗑️' });
+        }
+        break;
+      case 'edit':
+        setShowUserModal(true);
+        toast.success('Opening user details...');
+        break;
+    }
+  };
+  
+  const handleServiceEdit = (serviceId: string) => {
+    toast.success('Opening service editor...');
+    setShowServiceModal(true);
+  };
+  
+  const handleBookingAction = (bookingId: string, action: 'view' | 'edit' | 'cancel' | 'refund') => {
+    switch(action) {
+      case 'view':
+        setShowBookingModal(true);
+        toast.success('Opening booking details...');
+        break;
+      case 'edit':
+        toast.success('Edit booking functionality');
+        break;
+      case 'cancel':
+        if (confirm('Cancel this booking?')) {
+          toast.success('Booking cancelled', { icon: '❌' });
+        }
+        break;
+      case 'refund':
+        toast.success('Processing refund...', { icon: '💰' });
+        break;
+    }
+  };
+  
+  const handleTransactionAction = (txId: string, action: 'view' | 'refund' | 'dispute') => {
+    switch(action) {
+      case 'view':
+        toast.success('Viewing transaction details');
+        break;
+      case 'refund':
+        if (confirm('Process refund for this transaction?')) {
+          toast.success('Refund initiated', { icon: '💵' });
+        }
+        break;
+      case 'dispute':
+        toast('Opening dispute resolution...', { icon: '⚠️' });
+        break;
+    }
+  };
+  
+  // Form data states
+  const [userFormData, setUserFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: 'customer',
+    status: 'active'
+  });
+  
+  const [serviceFormData, setServiceFormData] = useState({
+    name: '',
+    category: '',
+    priceMin: '',
+    priceMax: '',
+    description: ''
+  });
+  
+  const [promoFormData, setPromoFormData] = useState({
+    code: '',
+    discount: '',
+    limit: '',
+    expires: ''
+  });
+  
+  const [ticketFormData, setTicketFormData] = useState({
+    customer: '',
+    subject: '',
+    priority: 'medium',
+    description: ''
+  });
+  
+  const handleSaveUser = () => {
+    if (!userFormData.name || !userFormData.email) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    toast.success(`User ${userFormData.name} saved successfully!`, { icon: '✅' });
+    setShowUserModal(false);
+    setUserFormData({ name: '', email: '', phone: '', role: 'customer', status: 'active' });
+  };
+  
+  const handleSaveService = () => {
+    if (!serviceFormData.name || !serviceFormData.category) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    toast.success(`Service "${serviceFormData.name}" updated successfully!`, { icon: '✨' });
+    setShowServiceModal(false);
+    setServiceFormData({ name: '', category: '', priceMin: '', priceMax: '', description: '' });
+  };
+  
+  const handleCreatePromo = () => {
+    if (!promoFormData.code || !promoFormData.discount) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    toast.success(`Promo code "${promoFormData.code}" created!`, { icon: '🎉' });
+    setShowPromoModal(false);
+    setPromoFormData({ code: '', discount: '', limit: '', expires: '' });
+  };
+  
+  const handleCreateTicket = () => {
+    if (!ticketFormData.subject || !ticketFormData.description) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    toast.success('Support ticket created successfully!', { icon: '🎫' });
+    setShowTicketModal(false);
+    setTicketFormData({ customer: '', subject: '', priority: 'medium', description: '' });
   };
 
   const platformStats = [
@@ -1403,7 +1545,21 @@ export default function AdminDashboard() {
                   Manage all platform users, providers, and beauticians
                 </p>
               </div>
-              <Button>
+              <Button
+                onClick={() => {
+                  setShowUserModal(true);
+                  toast.success('Opening user creation form...');
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(119, 78, 175, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                style={{ transition: 'all 0.2s' }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Plus size={18} />
                   Add User
@@ -1445,10 +1601,34 @@ export default function AdminDashboard() {
                   />
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <Button variant="outline">
+                  <Button 
+                    variant="outline"
+                    onClick={() => toast.success('Filter panel would open here', { icon: '🔍' })}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                    style={{ transition: 'all 0.2s' }}
+                  >
                     <Filter size={18} />
                   </Button>
-                  <Button variant="outline">
+                  <Button 
+                    variant="outline"
+                    onClick={() => exportToCSV(recentUsers, 'users-export')}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                    style={{ transition: 'all 0.2s' }}
+                  >
                     <Download size={18} />
                   </Button>
                 </div>
@@ -1602,43 +1782,73 @@ export default function AdminDashboard() {
                         </td>
                         <td style={{ padding: '1rem' }}>
                           <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                            <button style={{
-                              padding: '0.5rem',
-                              borderRadius: '0.5rem',
-                              border: 'none',
-                              background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
-                              color: darkMode ? '#A3A3A3' : '#737373',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              transition: 'all 0.2s ease',
-                            }}>
+                            <button 
+                              onClick={() => handleUserAction(user.id, 'edit')}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = darkMode ? 'rgba(119, 78, 175, 0.2)' : '#EDE9FE';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
+                              style={{
+                                padding: '0.5rem',
+                                borderRadius: '0.5rem',
+                                border: 'none',
+                                background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                                color: darkMode ? '#A3A3A3' : '#737373',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                transition: 'all 0.2s ease',
+                              }}>
                               <Eye size={16} />
                             </button>
-                            <button style={{
-                              padding: '0.5rem',
-                              borderRadius: '0.5rem',
-                              border: 'none',
-                              background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
-                              color: darkMode ? '#A3A3A3' : '#737373',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              transition: 'all 0.2s ease',
-                            }}>
+                            <button 
+                              onClick={() => handleUserAction(user.id, 'edit')}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = darkMode ? 'rgba(255, 179, 71, 0.2)' : '#FEF3C7';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
+                              style={{
+                                padding: '0.5rem',
+                                borderRadius: '0.5rem',
+                                border: 'none',
+                                background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                                color: darkMode ? '#A3A3A3' : '#737373',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                transition: 'all 0.2s ease',
+                              }}>
                               <Edit size={16} />
                             </button>
-                            <button style={{
-                              padding: '0.5rem',
-                              borderRadius: '0.5rem',
-                              border: 'none',
-                              background: darkMode ? 'rgba(255, 66, 117, 0.1)' : 'rgba(255, 66, 117, 0.1)',
-                              color: '#FF4275',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              transition: 'all 0.2s ease',
-                            }}>
+                            <button 
+                              onClick={() => handleUserAction(user.id, 'delete')}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = darkMode ? 'rgba(255, 66, 117, 0.2)' : 'rgba(255, 66, 117, 0.2)';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = darkMode ? 'rgba(255, 66, 117, 0.1)' : 'rgba(255, 66, 117, 0.1)';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
+                              style={{
+                                padding: '0.5rem',
+                                borderRadius: '0.5rem',
+                                border: 'none',
+                                background: darkMode ? 'rgba(255, 66, 117, 0.1)' : 'rgba(255, 66, 117, 0.1)',
+                                color: '#FF4275',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                transition: 'all 0.2s ease',
+                              }}>
                               <Trash2 size={16} />
                             </button>
                           </div>
@@ -1815,7 +2025,22 @@ export default function AdminDashboard() {
                         ({service.bookings} bookings)
                       </span>
                     </div>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleServiceEdit(service.id)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = darkMode ? 'rgba(119, 78, 175, 0.2)' : '#EDE9FE';
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                      style={{
+                        transition: 'all 0.2s',
+                      }}
+                    >
                       <Edit size={16} />
                     </Button>
                   </div>
@@ -1848,10 +2073,34 @@ export default function AdminDashboard() {
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <Button variant="outline">
+                <Button 
+                  variant="outline"
+                  onClick={() => exportToCSV(allBookings, 'bookings-export')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  style={{ transition: 'all 0.2s' }}
+                >
                   <Download size={18} />
                 </Button>
-                <Button variant="outline">
+                <Button 
+                  variant="outline"
+                  onClick={() => toast.success('Filter panel would open here', { icon: '🔍' })}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  style={{ transition: 'all 0.2s' }}
+                >
                   <Filter size={18} />
                 </Button>
               </div>
@@ -1969,26 +2218,71 @@ export default function AdminDashboard() {
                         </td>
                         <td style={{ padding: '1rem' }}>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button style={{
-                              padding: '0.5rem',
-                              borderRadius: '0.5rem',
-                              border: 'none',
-                              background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
-                              color: darkMode ? '#A3A3A3' : '#737373',
-                              cursor: 'pointer',
+                            <button 
+                              onClick={() => handleBookingAction(booking.id, 'view')}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = darkMode ? 'rgba(119, 78, 175, 0.2)' : '#EDE9FE';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
+                              style={{
+                                padding: '0.5rem',
+                                borderRadius: '0.5rem',
+                                border: 'none',
+                                background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                                color: darkMode ? '#A3A3A3' : '#737373',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
                             }}>
                               <Eye size={16} />
                             </button>
-                            <button style={{
-                              padding: '0.5rem',
-                              borderRadius: '0.5rem',
-                              border: 'none',
-                              background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
-                              color: darkMode ? '#A3A3A3' : '#737373',
-                              cursor: 'pointer',
+                            <button 
+                              onClick={() => handleBookingAction(booking.id, 'edit')}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = darkMode ? 'rgba(255, 179, 71, 0.2)' : '#FEF3C7';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
+                              style={{
+                                padding: '0.5rem',
+                                borderRadius: '0.5rem',
+                                border: 'none',
+                                background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                                color: darkMode ? '#A3A3A3' : '#737373',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
                             }}>
                               <Edit size={16} />
                             </button>
+                            {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                              <button 
+                                onClick={() => handleBookingAction(booking.id, 'cancel')}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#FEE2E2';
+                                  e.currentTarget.style.transform = 'scale(1.1)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5';
+                                  e.currentTarget.style.transform = 'scale(1)';
+                                }}
+                                style={{
+                                  padding: '0.5rem',
+                                  borderRadius: '0.5rem',
+                                  border: 'none',
+                                  background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                                  color: '#EF4444',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s',
+                              }}>
+                                <XCircle size={16} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -2023,10 +2317,34 @@ export default function AdminDashboard() {
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <Button variant="outline">
+                <Button 
+                  variant="outline"
+                  onClick={() => toast.success('Refreshing transaction data...', { icon: '🔄' })}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px) rotate(180deg)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0) rotate(0deg)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  style={{ transition: 'all 0.3s' }}
+                >
                   <RefreshCw size={18} />
                 </Button>
-                <Button variant="outline">
+                <Button 
+                  variant="outline"
+                  onClick={() => exportToCSV(allTransactions, 'transactions-export')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  style={{ transition: 'all 0.2s' }}
+                >
                   <Download size={18} />
                 </Button>
               </div>
@@ -2208,14 +2526,25 @@ export default function AdminDashboard() {
                           </div>
                         </td>
                         <td style={{ padding: '1rem' }}>
-                          <button style={{
-                            padding: '0.5rem',
-                            borderRadius: '0.5rem',
-                            border: 'none',
-                            background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
-                            color: darkMode ? '#A3A3A3' : '#737373',
-                            cursor: 'pointer',
-                          }}>
+                          <button 
+                            onClick={() => handleTransactionAction(transaction.id, 'view')}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = darkMode ? 'rgba(119, 78, 175, 0.2)' : '#EDE9FE';
+                              e.currentTarget.style.transform = 'scale(1.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5';
+                              e.currentTarget.style.transform = 'scale(1)';
+                            }}
+                            style={{
+                              padding: '0.5rem',
+                              borderRadius: '0.5rem',
+                              border: 'none',
+                              background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                              color: darkMode ? '#A3A3A3' : '#737373',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                            }}>
                             <Eye size={16} />
                           </button>
                         </td>
@@ -2653,7 +2982,21 @@ export default function AdminDashboard() {
                   }}>
                     Active Promo Codes
                   </h3>
-                  <Button onClick={createPromoCode}>
+                  <Button 
+                    onClick={() => {
+                      setShowPromoModal(true);
+                      createPromoCode();
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(119, 78, 175, 0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                    style={{ transition: 'all 0.2s' }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Plus size={18} />
                       Create Code
@@ -2753,24 +3096,52 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button style={{
-                          padding: '0.5rem',
-                          borderRadius: '0.5rem',
-                          border: 'none',
-                          background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#E5E5E5',
-                          color: darkMode ? 'white' : '#1A1A1A',
-                          cursor: 'pointer',
-                        }}>
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(promo.code);
+                            toast.success('Code copied to clipboard!', { icon: '📋' });
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = darkMode ? 'rgba(59, 130, 246, 0.2)' : '#DBEAFE';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = darkMode ? 'rgba(255, 255, 255, 0.05)' : '#E5E5E5';
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                          style={{
+                            padding: '0.5rem',
+                            borderRadius: '0.5rem',
+                            border: 'none',
+                            background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#E5E5E5',
+                            color: darkMode ? 'white' : '#1A1A1A',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}>
                           <Copy size={16} />
                         </button>
-                        <button style={{
-                          padding: '0.5rem',
-                          borderRadius: '0.5rem',
-                          border: 'none',
-                          background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#E5E5E5',
-                          color: darkMode ? 'white' : '#1A1A1A',
-                          cursor: 'pointer',
-                        }}>
+                        <button 
+                          onClick={() => {
+                            setShowPromoModal(true);
+                            toast.success('Opening promo editor...');
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = darkMode ? 'rgba(255, 179, 71, 0.2)' : '#FEF3C7';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = darkMode ? 'rgba(255, 255, 255, 0.05)' : '#E5E5E5';
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                          style={{
+                            padding: '0.5rem',
+                            borderRadius: '0.5rem',
+                            border: 'none',
+                            background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#E5E5E5',
+                            color: darkMode ? 'white' : '#1A1A1A',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}>
                           <Edit size={16} />
                         </button>
                       </div>
@@ -2852,7 +3223,21 @@ export default function AdminDashboard() {
                   Manage customer support requests and issues
                 </p>
               </div>
-              <Button onClick={() => setShowTicketModal(true)}>
+              <Button 
+                onClick={() => {
+                  setShowTicketModal(true);
+                  toast.success('Opening new ticket form...');
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(119, 78, 175, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                style={{ transition: 'all 0.2s' }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Plus size={18} />
                   New Ticket
@@ -2967,6 +3352,15 @@ export default function AdminDashboard() {
                               variant="ghost" 
                               size="sm"
                               onClick={() => assignTicket(ticket.id)}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = darkMode ? 'rgba(59, 130, 246, 0.2)' : '#DBEAFE';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
+                              style={{ transition: 'all 0.2s' }}
                             >
                               <UserCheck size={16} />
                             </Button>
@@ -2975,11 +3369,33 @@ export default function AdminDashboard() {
                                 variant="ghost" 
                                 size="sm"
                                 onClick={() => resolveTicket(ticket.id)}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = darkMode ? 'rgba(34, 197, 94, 0.2)' : '#D1FAE5';
+                                  e.currentTarget.style.transform = 'scale(1.1)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.transform = 'scale(1)';
+                                }}
+                                style={{ transition: 'all 0.2s' }}
                               >
                                 <CheckCircle size={16} />
                               </Button>
                             )}
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => toast.success('Opening ticket details...')}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = darkMode ? 'rgba(119, 78, 175, 0.2)' : '#EDE9FE';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
+                              style={{ transition: 'all 0.2s' }}
+                            >
                               <Eye size={16} />
                             </Button>
                           </div>
@@ -3069,7 +3485,14 @@ export default function AdminDashboard() {
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
                       <Button 
                         fullWidth
-                        onClick={() => toast.success('Report generated!')}
+                        onClick={() => toast.success('Report generated!', { icon: '📊' })}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                        style={{ transition: 'all 0.2s' }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <FileText size={16} />
@@ -3078,7 +3501,16 @@ export default function AdminDashboard() {
                       </Button>
                       <Button 
                         variant="outline"
-                        onClick={() => toast.success('Report downloaded!')}
+                        onClick={() => toast.success('Report downloaded!', { icon: '💾' })}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.1)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                        style={{ transition: 'all 0.2s' }}
                       >
                         <Download size={16} />
                       </Button>
@@ -3091,7 +3523,972 @@ export default function AdminDashboard() {
         )}
       </main>
       
-      {/* CSS Animations */}
+      {/* User Management Modal */}
+      {showUserModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '2rem',
+        }} onClick={() => setShowUserModal(false)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <Card
+              variant="elevated"
+              padding={6}
+              style={{
+                maxWidth: '600px',
+                width: '100%',
+                background: darkMode ? '#1A1A1A' : 'white',
+                border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+              }}
+            >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h2 style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 700,
+                color: darkMode ? 'white' : '#1A1A1A',
+              }}>
+                Add New User
+              </h2>
+              <button
+                onClick={() => setShowUserModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  padding: '0.5rem',
+                }}
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Full Name *
+                </label>
+                <Input
+                  placeholder="Enter full name"
+                  value={userFormData.name}
+                  onChange={(e) => setUserFormData({ ...userFormData, name: e.target.value })}
+                  style={{
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Email Address *
+                </label>
+                <Input
+                  type="email"
+                  placeholder="user@example.com"
+                  value={userFormData.email}
+                  onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })}
+                  style={{
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Phone Number
+                </label>
+                <Input
+                  placeholder="+1 234 567 8900"
+                  value={userFormData.phone}
+                  onChange={(e) => setUserFormData({ ...userFormData, phone: e.target.value })}
+                  style={{
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Role
+                </label>
+                <select
+                  value={userFormData.role}
+                  onChange={(e) => setUserFormData({ ...userFormData, role: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                    fontSize: '1rem',
+                  }}
+                >
+                  <option value="customer">Customer</option>
+                  <option value="provider">Provider</option>
+                  <option value="beautician">Beautician</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Status
+                </label>
+                <select
+                  value={userFormData.status}
+                  onChange={(e) => setUserFormData({ ...userFormData, status: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                    fontSize: '1rem',
+                  }}
+                >
+                  <option value="active">Active</option>
+                  <option value="pending">Pending</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <Button
+                  variant="outline"
+                  fullWidth
+                  onClick={() => setShowUserModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  fullWidth
+                  onClick={handleSaveUser}
+                  style={{
+                    background: 'linear-gradient(135deg, #FF4275 0%, #774EAF 100%)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                    <UserCheck size={18} />
+                    Save User
+                  </div>
+                </Button>
+              </div>
+            </div>
+          </Card>
+          </div>
+        </div>
+      )}
+      
+      {/* Service Edit Modal */
+      {showServiceModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '2rem',
+        }} onClick={() => setShowServiceModal(false)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <Card
+              variant="elevated"
+              padding={6}
+              style={{
+                maxWidth: '600px',
+                width: '100%',
+                background: darkMode ? '#1A1A1A' : 'white',
+                border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+              }}
+            >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h2 style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 700,
+                color: darkMode ? 'white' : '#1A1A1A',
+              }}>
+                Edit Service
+              </h2>
+              <button
+                onClick={() => setShowServiceModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  padding: '0.5rem',
+                }}
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Service Name *
+                </label>
+                <Input
+                  placeholder="e.g., Hair Styling"
+                  value={serviceFormData.name}
+                  onChange={(e) => setServiceFormData({ ...serviceFormData, name: e.target.value })}
+                  style={{
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Category *
+                </label>
+                <select
+                  value={serviceFormData.category}
+                  onChange={(e) => setServiceFormData({ ...serviceFormData, category: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                    fontSize: '1rem',
+                  }}
+                >
+                  <option value="">Select category</option>
+                  <option value="Hair">Hair</option>
+                  <option value="Nails">Nails</option>
+                  <option value="Skincare">Skincare</option>
+                  <option value="Makeup">Makeup</option>
+                  <option value="Wellness">Wellness</option>
+                </select>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    color: darkMode ? '#A3A3A3' : '#737373',
+                    marginBottom: '0.5rem',
+                  }}>
+                    Min Price ($)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="45"
+                    value={serviceFormData.priceMin}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, priceMin: e.target.value })}
+                    style={{
+                      background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                      border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                      color: darkMode ? 'white' : '#1A1A1A',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    color: darkMode ? '#A3A3A3' : '#737373',
+                    marginBottom: '0.5rem',
+                  }}>
+                    Max Price ($)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="120"
+                    value={serviceFormData.priceMax}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, priceMax: e.target.value })}
+                    style={{
+                      background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                      border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                      color: darkMode ? 'white' : '#1A1A1A',
+                    }}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Description
+                </label>
+                <textarea
+                  placeholder="Describe the service..."
+                  value={serviceFormData.description}
+                  onChange={(e) => setServiceFormData({ ...serviceFormData, description: e.target.value })}
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                    fontSize: '1rem',
+                    fontFamily: 'inherit',
+                    resize: 'vertical',
+                  }}
+                />
+              </div>
+              
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <Button
+                  variant="outline"
+                  fullWidth
+                  onClick={() => setShowServiceModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  fullWidth
+                  onClick={handleSaveService}
+                  style={{
+                    background: 'linear-gradient(135deg, #FF4275 0%, #774EAF 100%)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                    <Sparkles size={18} />
+                    Save Service
+                  </div>
+                </Button>
+              </div>
+            </div>
+          </Card>
+          </div>
+        </div>
+      )}
+      
+      {/* Booking Details Modal */
+      {showBookingModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '2rem',
+        }} onClick={() => setShowBookingModal(false)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <Card
+              variant="elevated"
+              padding={6}
+              style={{
+                maxWidth: '700px',
+                width: '100%',
+                background: darkMode ? '#1A1A1A' : 'white',
+                border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+              }}
+            >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h2 style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 700,
+                color: darkMode ? 'white' : '#1A1A1A',
+              }}>
+                Booking Details
+              </h2>
+              <button
+                onClick={() => setShowBookingModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  padding: '0.5rem',
+                }}
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              <div style={{
+                padding: '1.5rem',
+                borderRadius: '1rem',
+                background: darkMode ? 'rgba(255, 255, 255, 0.03)' : '#F5F5F5',
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: darkMode ? '#A3A3A3' : '#737373', marginBottom: '0.5rem' }}>
+                      Booking ID
+                    </div>
+                    <div style={{ fontWeight: 600, color: darkMode ? 'white' : '#1A1A1A' }}>
+                      BK-1001
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: darkMode ? '#A3A3A3' : '#737373', marginBottom: '0.5rem' }}>
+                      Status
+                    </div>
+                    <span style={{
+                      padding: '0.375rem 0.875rem',
+                      borderRadius: '1rem',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      background: darkMode ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)',
+                      color: '#22C55E',
+                    }}>
+                      Confirmed
+                    </span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: darkMode ? '#A3A3A3' : '#737373', marginBottom: '0.5rem' }}>
+                      Customer
+                    </div>
+                    <div style={{ fontWeight: 600, color: darkMode ? 'white' : '#1A1A1A' }}>
+                      Sarah Johnson
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: darkMode ? '#A3A3A3' : '#737373', marginBottom: '0.5rem' }}>
+                      Service
+                    </div>
+                    <div style={{ fontWeight: 600, color: darkMode ? 'white' : '#1A1A1A' }}>
+                      Hair Styling
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: darkMode ? '#A3A3A3' : '#737373', marginBottom: '0.5rem' }}>
+                      Provider
+                    </div>
+                    <div style={{ fontWeight: 600, color: darkMode ? 'white' : '#1A1A1A' }}>
+                      Glamour Studio
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: darkMode ? '#A3A3A3' : '#737373', marginBottom: '0.5rem' }}>
+                      Amount
+                    </div>
+                    <div style={{ fontWeight: 700, color: '#22C55E', fontSize: '1.25rem' }}>
+                      $85.00
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: darkMode ? '#A3A3A3' : '#737373', marginBottom: '0.5rem' }}>
+                      Date
+                    </div>
+                    <div style={{ fontWeight: 600, color: darkMode ? 'white' : '#1A1A1A' }}>
+                      December 26, 2024
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: darkMode ? '#A3A3A3' : '#737373', marginBottom: '0.5rem' }}>
+                      Time
+                    </div>
+                    <div style={{ fontWeight: 600, color: darkMode ? 'white' : '#1A1A1A' }}>
+                      10:00 AM
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 style={{
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: darkMode ? 'white' : '#1A1A1A',
+                  marginBottom: '1rem',
+                }}>
+                  Actions
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      toast.success('Sending confirmation email...');
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                      <Mail size={16} />
+                      Email Customer
+                    </div>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      toast.success('Opening edit mode...');
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                      <Edit size={16} />
+                      Edit Booking
+                    </div>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (confirm('Cancel this booking?')) {
+                        toast.success('Booking cancelled', { icon: '❌' });
+                        setShowBookingModal(false);
+                      }
+                    }}
+                    style={{
+                      color: '#EF4444',
+                      borderColor: '#EF4444',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                      <XCircle size={16} />
+                      Cancel Booking
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      toast.success('Processing refund...', { icon: '💰' });
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                      <DollarSign size={16} />
+                      Process Refund
+                    </div>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+          </div>
+        </div>
+      )}
+      
+      {/* Promo Code Modal */
+      {showPromoModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '2rem',
+        }} onClick={() => setShowPromoModal(false)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <Card
+              variant="elevated"
+              padding={6}
+              style={{
+                maxWidth: '600px',
+                width: '100%',
+                background: darkMode ? '#1A1A1A' : 'white',
+                border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+              }}
+            >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h2 style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 700,
+                color: darkMode ? 'white' : '#1A1A1A',
+              }}>
+                Create Promo Code
+              </h2>
+              <button
+                onClick={() => setShowPromoModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  padding: '0.5rem',
+                }}
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Promo Code *
+                </label>
+                <Input
+                  placeholder="SUMMER2024"
+                  value={promoFormData.code}
+                  onChange={(e) => setPromoFormData({ ...promoFormData, code: e.target.value.toUpperCase() })}
+                  style={{
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                    fontFamily: 'monospace',
+                    fontWeight: 600,
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Discount *
+                </label>
+                <Input
+                  placeholder="20% or $10"
+                  value={promoFormData.discount}
+                  onChange={(e) => setPromoFormData({ ...promoFormData, discount: e.target.value })}
+                  style={{
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                  }}
+                />
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    color: darkMode ? '#A3A3A3' : '#737373',
+                    marginBottom: '0.5rem',
+                  }}>
+                    Usage Limit
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="100"
+                    value={promoFormData.limit}
+                    onChange={(e) => setPromoFormData({ ...promoFormData, limit: e.target.value })}
+                    style={{
+                      background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                      border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                      color: darkMode ? 'white' : '#1A1A1A',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    color: darkMode ? '#A3A3A3' : '#737373',
+                    marginBottom: '0.5rem',
+                  }}>
+                    Expiry Date
+                  </label>
+                  <Input
+                    type="date"
+                    value={promoFormData.expires}
+                    onChange={(e) => setPromoFormData({ ...promoFormData, expires: e.target.value })}
+                    style={{
+                      background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                      border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                      color: darkMode ? 'white' : '#1A1A1A',
+                    }}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <Button
+                  variant="outline"
+                  fullWidth
+                  onClick={() => setShowPromoModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  fullWidth
+                  onClick={handleCreatePromo}
+                  style={{
+                    background: 'linear-gradient(135deg, #FF4275 0%, #774EAF 100%)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                    <Gift size={18} />
+                    Create Code
+                  </div>
+                </Button>
+              </div>
+            </div>
+          </Card>
+          </div>
+        </div>
+      )}
+      
+      {/* Support Ticket Modal */
+      {showTicketModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '2rem',
+        }} onClick={() => setShowTicketModal(false)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <Card
+              variant="elevated"
+              padding={6}
+              style={{
+                maxWidth: '600px',
+                width: '100%',
+                background: darkMode ? '#1A1A1A' : 'white',
+                border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+              }}
+            >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h2 style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 700,
+                color: darkMode ? 'white' : '#1A1A1A',
+              }}>
+                Create Support Ticket
+              </h2>
+              <button
+                onClick={() => setShowTicketModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  padding: '0.5rem',
+                }}
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Customer Name
+                </label>
+                <Input
+                  placeholder="Enter customer name"
+                  value={ticketFormData.customer}
+                  onChange={(e) => setTicketFormData({ ...ticketFormData, customer: e.target.value })}
+                  style={{
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Subject *
+                </label>
+                <Input
+                  placeholder="Brief description of the issue"
+                  value={ticketFormData.subject}
+                  onChange={(e) => setTicketFormData({ ...ticketFormData, subject: e.target.value })}
+                  style={{
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Priority
+                </label>
+                <select
+                  value={ticketFormData.priority}
+                  onChange={(e) => setTicketFormData({ ...ticketFormData, priority: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                    fontSize: '1rem',
+                  }}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: darkMode ? '#A3A3A3' : '#737373',
+                  marginBottom: '0.5rem',
+                }}>
+                  Description *
+                </label>
+                <textarea
+                  placeholder="Detailed description of the issue..."
+                  value={ticketFormData.description}
+                  onChange={(e) => setTicketFormData({ ...ticketFormData, description: e.target.value })}
+                  rows={5}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                    background: darkMode ? 'rgba(255, 255, 255, 0.05)' : '#F5F5F5',
+                    border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E5E5E5',
+                    color: darkMode ? 'white' : '#1A1A1A',
+                    fontSize: '1rem',
+                    fontFamily: 'inherit',
+                    resize: 'vertical',
+                  }}
+                />
+              </div>
+              
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <Button
+                  variant="outline"
+                  fullWidth
+                  onClick={() => setShowTicketModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  fullWidth
+                  onClick={handleCreateTicket}
+                  style={{
+                    background: 'linear-gradient(135deg, #FF4275 0%, #774EAF 100%)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                    <MessageSquare size={18} />
+                    Create Ticket
+                  </div>
+                </Button>
+              </div>
+            </div>
+          </Card>
+          </div>
+        </div>
+      )}
+      
+      {/* CSS Animations */
       <style jsx global>{`
         @keyframes pulse {
           0%, 100% {
